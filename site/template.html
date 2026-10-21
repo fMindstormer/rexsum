@@ -1,0 +1,174 @@
+<title>rexsum</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Azeret+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a form-first page. A grid of live fields (the demo) opens the page, then the method, the full table and the limits, in one 1080px column. */
+:root {
+  --paper: #F3F5F2; --card: #FFFFFF; --ink: #15211C; --ink-2: #47554F; --ink-3: #6A7872;
+  --rule: #D4DCD7; --accent: #1C5B47; --accent-soft: #E1EDE7; --ok: #1D7845; --bad: #B23A2E; --code-bg: #EBEFEC;
+  --display: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono: "Azeret Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #0F1513; --card: #161F1B; --ink: #E2EAE6; --ink-2: #A9B7B0; --ink-3: #85948D;
+  --rule: #29352F; --accent: #7FC6AA; --accent-soft: #1B2C25; --ok: #63C78F; --bad: #F08A7B; --code-bg: #1B2420; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --paper: #0F1513; --card: #161F1B; --ink: #E2EAE6; --ink-2: #A9B7B0; --ink-3: #85948D;
+  --rule: #29352F; --accent: #7FC6AA; --accent-soft: #1B2C25; --ok: #63C78F; --bad: #F08A7B; --code-bg: #1B2420; color-scheme: dark }
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.6 var(--body); }
+.wrap { max-width: 1080px; margin: 0 auto; padding-block: 40px 72px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 56px; }
+h1, h2 { font-family: var(--display); margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+h1 { font-size: clamp(2rem, 5.2vw, 3.3rem); line-height: 1.05; font-weight: 700; max-width: 20ch; }
+h2 { font-size: clamp(1.35rem, 3vw, 1.75rem); line-height: 1.2; font-weight: 600; }
+p { margin: 0; max-width: 66ch; }
+.eyebrow { font: 500 0.78rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+.lede { font-size: 1.15rem; color: var(--ink-2); }
+.stack { display: grid; gap: 14px; min-width: 0; }
+code { font: 0.9em var(--mono); background: var(--code-bg); padding: 0.1em 0.35em; border-radius: 4px; overflow-wrap: anywhere; }
+a { color: var(--accent); }
+.tnum, .num { font-variant-numeric: tabular-nums; }
+
+/* the demo */
+.fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 14px; }
+.field { background: var(--card); border: 1px solid var(--rule); border-radius: 10px; padding: 16px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.field label { display: grid; gap: 2px; }
+.fname { font-weight: 700; }
+.fshape { color: var(--ink-3); font-size: 0.88rem; }
+.field input { width: 100%; font: 500 1.12rem/1.2 var(--mono); letter-spacing: 0.06em; color: var(--ink); background: var(--paper);
+  border: 2px solid var(--rule); border-radius: 8px; padding: 10px 12px; }
+.field input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.field input:valid:not(:placeholder-shown) { border-color: var(--ok); }
+.field input:invalid { border-color: var(--bad); }
+.status { font-size: 0.92rem; min-height: 1.5em; }
+.status::before { color: var(--ink-3); content: "Type a number"; }
+.field input:valid:not(:placeholder-shown) ~ .status::before { content: "\2713  Check digit correct"; color: var(--ok); font-weight: 700; }
+.field input:invalid ~ .status::before { content: "\2717  Wrong check digit, length or character"; color: var(--bad); font-weight: 700; }
+.fmeta { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; color: var(--ink-3); font-size: 0.85rem; border-top: 1px solid var(--rule); padding-top: 10px; }
+.copy { font: inherit; font-weight: 700; color: var(--accent); background: var(--accent-soft); border: 0; border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+.copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.hint { color: var(--ink-3); font-size: 0.92rem; }
+
+/* method */
+.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 28px; }
+.step { display: grid; gap: 8px; align-content: start; min-width: 0; }
+.step h3 { font: 600 1.05rem/1.3 var(--display); margin: 0; }
+.step .fig { font: 500 1.6rem/1.1 var(--mono); color: var(--accent); font-variant-numeric: tabular-nums; }
+.step .fig small { display: block; font: 0.8rem/1.4 var(--body); color: var(--ink-3); margin-top: 4px; }
+pre.rx { margin: 0; font: 0.84rem/1.55 var(--mono); background: var(--code-bg); border-radius: 8px; padding: 12px 14px; overflow-x: auto; white-space: pre; }
+
+/* table */
+.tablebox { overflow-x: auto; border: 1px solid var(--rule); border-radius: 10px; background: var(--card); }
+table { border-collapse: collapse; width: 100%; font-size: 0.93rem; min-width: 720px; }
+th, td { text-align: left; padding: 9px 14px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-weight: 700; color: var(--ink-2); font-size: 0.82rem; }
+tr:last-child td { border-bottom: 0; }
+td.parts { white-space: nowrap; font-family: var(--mono); font-size: 0.84rem; }
+td.num, th.num { text-align: right; font-family: var(--mono); font-size: 0.88rem; }
+
+.limits { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 14px; }
+.limit { border-left: 3px solid var(--bad); padding: 4px 0 4px 14px; display: grid; gap: 6px; min-width: 0; }
+.limit b { font-family: var(--display); font-weight: 600; font-size: 1.05rem; }
+ul.refs { margin: 0; padding-left: 1.1em; display: grid; gap: 8px; max-width: 72ch; }
+footer { color: var(--ink-3); font-size: 0.88rem; border-top: 1px solid var(--rule); padding-top: 18px; display: grid; gap: 6px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="stack">
+    <p class="eyebrow">rexsum</p>
+    <h1>Check digits, checked by the HTML <code style="font-size:0.8em">pattern</code> attribute</h1>
+    <p class="lede">Every field below checks its check digit with nothing but a regular expression in its <code>pattern</code> attribute. No script runs: the browser's own form validation does the arithmetic, even with JavaScript turned off.</p>
+  </header>
+
+  <section class="stack" aria-labelledby="try">
+    <h2 id="try">Try them</h2>
+    <p class="hint">Each field holds a valid example. Change one digit, or swap two neighbours, and watch it fail.</p>
+    <form class="fields" onsubmit="return false" novalidate><!--CARDS-->
+    </form>
+  </section>
+
+  <section class="stack" aria-labelledby="how">
+    <h2 id="how">How a regex does the arithmetic</h2>
+    <p>A check-digit rule reads the digits and keeps a running sum modulo 10 or 11. That is a finite automaton, so an equivalent regular expression must exist. The textbook conversion makes it huge, and common advice says a regex cannot do this at all. Three steps bring it down to a size a form can carry.</p>
+    <div class="steps">
+      <div class="step">
+        <p class="fig">{{naive_luhn}}<small>characters for Luhn without the split below</small></p>
+        <h3>1. The direct route explodes</h3>
+        <p>Converting an automaton to a regex removes its states one by one, and every removal can multiply the expression. Luhn's automaton has 20 states; even a one-line rule like "divisible by 11" comes out at {{div11}} characters.</p>
+      </div>
+      <div class="step">
+        <p class="fig">10 = 2 × 5<small>so check mod 2 and mod 5 separately (Chinese remainder theorem)</small></p>
+        <h3>2. Split the modulus</h3>
+        <p>A sum is 0 mod 10 exactly when it is 0 mod 2 and 0 mod 5. A JavaScript lookahead intersects two regexes, <code>(?=A$)B</code>, so each part gets its own small automaton. For Luhn, the mod-2 part needs 198 characters; nearly all the size is in the mod-5 part.</p>
+      </div>
+      <div class="step">
+        <p class="fig">24,246<small>characters for Luhn's mod-5 part</small></p>
+        <h3>3. Eliminate in the right order</h3>
+        <p>The order in which states are removed decides the size. Removing the in-between positions first lets 5 states read two digits at a time, and the best of their 120 orders is kept. For short fixed lengths, splitting the number at the best position, recursively, does better: EAN-8 needs 3,971 characters.</p>
+      </div>
+    </div>
+    <p>The mod-2 part of Luhn, in full (the rightmost digit counts once, the next one doubled):</p>
+    <pre class="rx">{{luhn_mod2}}</pre>
+  </section>
+
+  <section class="stack" aria-labelledby="all">
+    <h2 id="all">Every pattern</h2>
+    <p>Each pattern was tested against a reference implementation on 27,000 strings in Python and on 780 strings typed into a real <code>&lt;input&gt;</code> in Chromium with JavaScript off. No mismatches. Times are for Chromium's regex engine (V8) with the <code>v</code> flag the <code>pattern</code> attribute uses.</p>
+    <div class="tablebox">
+      <table>
+        <thead><tr><th>Scheme</th><th class="num">Characters</th><th>Parts</th><th>Construction</th><th class="num">Compile (ms)</th><th class="num">Match (µs)</th></tr></thead>
+        <tbody><!--ROWS-->
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="stack" aria-labelledby="limits">
+    <h2 id="limits">Out of reach</h2>
+    <p>A prime modulus cannot be split, and the size grows fast with it. Digits whose sum is a multiple of 5 already need stars nested five deep (McNaughton's theorem on star height), and the constructions here grow like 4<sup>q−1</sup> for modulus q.</p>
+    <div class="limits">
+      <div class="limit"><b>IBAN (mod 97)</b><p>Eight-digit multiples of 97 already need {{mod97_8}} characters, and each extra digit multiplies that by about 2.7. A German IBAN has 20 digits.</p></div>
+      <div class="limit"><b>Damm check digit</b><p>Its table is a quasigroup, not a group, so nothing splits. The direct conversion gives {{damm}} characters.</p></div>
+      <div class="limit"><b>ISBN-10 is the largest that works</b><p>Mod 11 is prime, so its pattern is one piece of 91,659 characters. Chromium compiles it in about a quarter of a second.</p></div>
+    </div>
+  </section>
+
+  <section class="stack" aria-labelledby="prior">
+    <h2 id="prior">What existed before</h2>
+    <ul class="refs">
+      <li>Validation guides say a regex can check a card number's format but <a href="https://techearl.com/regex-validate-credit-card-luhn" target="_blank" rel="noopener">not its Luhn digit</a>, and tools call code after the match.</li>
+      <li>Steven Pemberton wrote the Luhn check as an <a href="https://homepages.cwi.nl/~steven/Talks/2026/02-27-ixml/paper.html" target="_blank" rel="noopener">Invisible XML grammar</a> (CWI, 2026): 20 states read right to left. It is a grammar, not a regex.</li>
+      <li>Regexes for "divisible by 7" are known puzzles; <a href="https://github.com/Fiona1729/DivisibilityRegexes" target="_blank" rel="noopener">generators</a> rely on a plain conversion in JFLAP or on recursive PCRE, which browsers do not support.</li>
+      <li>Gruber and Holzer survey the theory: <a href="https://arxiv.org/abs/1405.5594" target="_blank" rel="noopener">From Finite Automata to Regular Expressions and Back</a>, including elimination-order heuristics and lower bounds.</li>
+    </ul>
+  </section>
+
+  <footer>
+    <p>rexsum compiles any weighted check-digit sum: <code>python -m rexsum custom --weights 1,3 --mod 10 --length 13</code></p>
+    <p>The copy buttons are the page's only script.</p>
+  </footer>
+</div>
+
+<script>
+document.querySelectorAll(".copy").forEach(btn => btn.addEventListener("click", async () => {
+  const text = document.getElementById(btn.dataset.for).getAttribute("pattern");
+  const done = label => { btn.textContent = label; setTimeout(() => { btn.textContent = "Copy pattern"; }, 1600); };
+  try { await navigator.clipboard.writeText(text); done("Copied"); }
+  catch (e) {
+    const ta = document.createElement("textarea");
+    ta.value = text; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (e2) { ok = false; }
+    ta.remove();
+    done(ok ? "Copied" : "Copy failed");
+  }
+}));
+</script>

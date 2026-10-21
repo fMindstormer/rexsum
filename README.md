@@ -1,0 +1,122 @@
+# rexsum
+
+**Check-digit validation in one regular expression**, small enough for the HTML `pattern`
+attribute. A credit card number, IMEI, ISBN, UPC/EAN barcode, US routing number or Dutch BSN typed
+into a plain `<input>` is checked by the browser's own form validation, with no JavaScript:
+
+```html
+<input inputmode="numeric" pattern="(?=\d{12,19}$)(?=(?:(?:[02468]|[13579]…">   <!-- 24,471 characters -->
+```
+
+Common advice says this cannot be done ("regex cannot perform the Luhn check"). It can: any
+check-digit rule is a finite automaton, so an equivalent regular expression exists. The problem is
+size: converted as one automaton, Luhn gives a regex of 37,396,808 characters. rexsum gets it
+down to 24,465 (12,602 for 16-digit card numbers), 1,500 times smaller.
+
+| Scheme | Characters | Chromium compile | Median match |
+|---|---:|---:|---:|
+| Luhn, any length | 24,465 | 16 ms | 7 µs |
+| Payment card, 12–19 digits | 24,471 | 16 ms | 1 µs |
+| Payment card, 16 digits | 12,602 | 7 ms | 2 µs |
+| IMEI (15 digits) | 24,466 | 16 ms | 7 µs |
+| Canadian SIN (9 digits) | 10,379 | 76 ms | 1 µs |
+| GTIN, any length | 23,806 | 21 ms | 14 µs |
+| EAN-8 | 3,971 | 10 ms | 1 µs |
+| UPC-A | 12,262 | 8 ms | 2 µs |
+| EAN-13 | 23,808 | 21 ms | 13 µs |
+| ISBN-13 | 23,814 | 21 ms | 10 µs |
+| GTIN-14 | 12,262 | 8 ms | 3 µs |
+| ABA routing number | 10,022 | 32 ms | 1 µs |
+| ISBN-10 | 91,659 | 232 ms | 51 µs |
+| ISSN | 16,199 | 316 ms | 2 µs |
+| BSN (Dutch elfproef) | 53,594 | 116 ms | 37 µs |
+
+Every pattern agrees with a reference implementation on 27,000 test strings in Python, and on 780
+strings typed into a real `<input>` in Chromium with JavaScript disabled (`tests/browser.py`).
+Matching stays linear: 1,000-digit inputs take about 2 ms at most.
+
+## How
+
+1. **Split the modulus with lookaheads.** A sum is 0 mod 10 exactly when it is 0 mod 2 and
+   0 mod 5 (Chinese remainder theorem). JavaScript regexes can intersect: `(?=A$)B` matches what
+   both `A` and `B` match. So each prime-power part gets its own, much smaller automaton. For Luhn
+   the mod-2 part is 198 characters; the work is in the mod-5 part. Without the split, the same
+   elimination order gives 37,396,808 characters.
+2. **Eliminate states in a structured order.** State elimination removes states one by one; the
+   order decides the size, by orders of magnitude. For cyclic weights (Luhn's 1, 2, 1, 2, …) the
+   positions inside one period go first, so the 5 remaining states read two digits at a time; then
+   all 120 orders of those 5 are tried. On Luhn's mod-5 part this gives 24,246 characters, against
+   47,183 for the best greedy rule from the literature and 72,000 for the best of 178 random orders.
+3. **Split fixed lengths at the best point.** For a fixed length the weighted sum is translation
+   invariant, so an interval of positions needs only one regex per residue. Each interval is split
+   where its regexes come out shortest, recursively (`layered_dp`). This wins for short numbers
+   (EAN-8: 3,971 characters against 12,203) and for the mod-11 schemes, whose digits never share a
+   character class.
+
+The regex builder (`rexsum/regex.py`) keeps expressions small as it goes: single characters merge
+into classes, alternatives that share a first or last item are factored, repeats become `{n}` and
+`+`. The patterns use only syntax that is valid under the `v` flag browsers apply to `pattern`.
+
+## Limits
+
+- **Prime moduli are expensive.** The language "digits whose sum is a multiple of 5" already needs
+  stars nested five deep (McNaughton: for bideterministic languages, star height equals the cycle
+  rank of the minimal automaton, here a complete graph on 5 states). The constructions here grow
+  like 4^(q−1) for modulus q.
+- **IBAN (mod 97) is out of reach.** Eight-digit multiples of 97 already need 100,133 characters,
+  and each extra digit multiplies that by about 2.7; a German IBAN has 20 digits.
+- **Damm** (a quasigroup, so nothing splits) comes out at 1,398,101 characters by direct
+  elimination. Verhoeff has not been tried.
+
+## Prior work
+
+- Validation guides say a regex can only check the format and pair it with code
+  ([example](https://techearl.com/regex-validate-credit-card-luhn)); tools such as re-search.py call a
+  Luhn function after the match ([Didier Stevens, 2021](https://blog.didierstevens.com/2021/02/22/re-search-py-and-custom-validations/)).
+- Steven Pemberton, *The Syntax of Credit Card Numbers* (CWI, Invisible XML Symposium 2026),
+  writes the Luhn check as an ixml grammar: 20 states right to left, about 100 rules left to right
+  ([paper](https://homepages.cwi.nl/~steven/Talks/2026/02-27-ixml/paper.html)). A grammar, not a regex.
+- *Can a regex match valid card numbers?* ([Abstract Nonsense, 2025](https://abstractnonsense.xyz/blog/2025-08-31-can-a-regex-match-valid-card-numbers/))
+  converts a Luhn automaton with the greenery library (Brzozowski's algebraic method): 32,461,605
+  characters for even lengths and 48,236,673 for odd. Python's `re` runs it; grep and ripgrep run
+  out of memory. This is the direct conversion that rexsum makes 1,500 times smaller.
+- Divisibility regexes are puzzles (Codewars katas for binary multiples of 7 and decimal multiples
+  of 4); [DivisibilityRegexes](https://github.com/Fiona1729/DivisibilityRegexes) generates them through
+  JFLAP's plain conversion or with recursive PCRE, which JavaScript lacks.
+- H. Gruber and M. Holzer, *From Finite Automata to Regular Expressions and Back — A Summary on
+  Descriptional Complexity* ([arXiv:1405.5594](https://arxiv.org/abs/1405.5594)): worst-case
+  2^Θ(n) blow-up, lower bounds through cycle rank and star height, and elimination-order heuristics
+  (Delgado and Morais 2004; Lombardy, Régis-Gianas and Sakarovitch 2004; Moreira, Nabais and Reis
+  2010).
+
+Apart from that Luhn conversion, I found no published regex that verifies a check digit (GTIN,
+ISBN, ABA, elfproef), and none small enough for a `pattern` attribute.
+
+## Use it
+
+```sh
+python -m rexsum --list                     # the shipped schemes
+python -m rexsum card                       # the pattern
+python -m rexsum card --html                # as an <input> element
+python -m rexsum custom --weights 1,3 --mod 10 --length 13     # your own weighted sum
+python build.py                             # rebuild patterns.json (a few minutes)
+python -m pytest tests                      # check the shipped patterns
+python tests/make_cases.py tests/cases.json && python tests/browser.py patterns.json tests/cases.json
+node tests/speed.mjs patterns.json tests/cases.json speed.json
+```
+
+`patterns.json` holds every pattern with its size and parts. Python 3.10+, no dependencies; the
+browser test needs Playwright.
+
+## Files
+
+```
+rexsum/regex.py      regex trees with simplifying constructors, printed in JavaScript syntax
+rexsum/automata.py   automata: exploration, minimization
+rexsum/elim.py       state elimination, greedy orders
+rexsum/pipeline.py   the CRT split, period-first elimination, interval splitting, pattern assembly
+rexsum/specs.py      the shipped schemes;  rexsum/schemes.py  reference checkers and experiments
+build.py             compile and test everything, write patterns.json
+tests/               pytest, the Chromium check with JavaScript off, V8 timings
+site/                the demo page
+```
