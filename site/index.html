@@ -244,7 +244,7 @@ footer { color: var(--ink-3); font-size: 0.88rem; border-top: 1px solid var(--ru
     <h2 id="limits">Out of reach</h2>
     <p>A prime modulus cannot be split, and the size grows fast with it. Digits whose sum is a multiple of 5 already need stars nested five deep (McNaughton's theorem on star height), and the constructions here grow like 4<sup>q−1</sup> for modulus q.</p>
     <div class="limits">
-      <div class="limit"><b>IBAN (mod 97)</b><p>Eight-digit multiples of 97 already need 100,133 characters, and each extra digit multiplies that by about 2.7. A German IBAN has 20 digits.</p></div>
+      <div class="limit"><b>IBAN (mod 97)</b><p>Eight-digit multiples of 97 already need 100,133 characters. 97 is prime, so nothing splits, and the size grows like n<sup>7.6</sup> in the number of digits: a German IBAN (20 free digits) would need about 10<sup>8</sup>.</p></div>
       <div class="limit"><b>Damm check digit</b><p>Its table is a quasigroup, not a group, so nothing splits. The direct conversion gives 1,398,101 characters.</p></div>
       <div class="limit"><b>ISBN-10 is the largest that works</b><p>Mod 11 is prime, so its pattern is one piece of 91,659 characters. Chromium compiles it in about a quarter of a second.</p></div>
     </div>

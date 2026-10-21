@@ -63,8 +63,14 @@ into classes, alternatives that share a first or last item are factored, repeats
   stars nested five deep (McNaughton: for bideterministic languages, star height equals the cycle
   rank of the minimal automaton, here a complete graph on 5 states). The constructions here grow
   like 4^(q−1) for modulus q.
-- **IBAN (mod 97) is out of reach.** Eight-digit multiples of 97 already need 100,133 characters,
-  and each extra digit multiplies that by about 2.7; a German IBAN has 20 digits.
+- **IBAN (mod 97) is out of reach.** 97 is prime, so nothing splits, and the ten digits add ten
+  different residues, so no character classes merge. Multiples of 97 with 4, 6 and 8 digits need
+  524, 9,653 and 100,133 characters. Each country fixes the length, so interval splitting grows
+  only polynomially: halving the length divides the size by about 2 × 97, so it grows like n^7.6.
+  That still puts a German IBAN (20 free digits) near 10^8 characters, and Norway's (13) in the
+  millions. Whether this is close to optimal is open. For plain regexes, communication-complexity
+  lower bounds (Gruber and Johannsen, FoSSaCS 2008) look like the tool; with lookaheads, which
+  express AND, OR and NOT, it becomes a question of Boolean formula size.
 - **Damm** (a quasigroup, so nothing splits) comes out at 1,398,101 characters by direct
   elimination. Verhoeff has not been tried.
 
