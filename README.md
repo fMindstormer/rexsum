@@ -4,6 +4,8 @@
 attribute. A credit card number, IMEI, ISBN, UPC/EAN barcode, US routing number or Dutch BSN typed
 into a plain `<input>` is checked by the browser's own form validation, with no JavaScript:
 
+**[Try it in your browser](https://fmindstormer.github.io/rexsum/)**: ten live fields, no script.
+
 ```html
 <input inputmode="numeric" pattern="(?=\d{12,19}$)(?=(?:(?:[02468]|[13579]…">   <!-- 24,471 characters -->
 ```

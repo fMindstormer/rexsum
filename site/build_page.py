@@ -1,4 +1,4 @@
-"""Build the demo page: site/index.html (an Artifact page: no document skeleton)."""
+"""Build the demo page: site/index.html, published by GitHub Pages."""
 import html
 import json
 from pathlib import Path

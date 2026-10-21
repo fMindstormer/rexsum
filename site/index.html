@@ -1,5 +1,10 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Check-digit validation (Luhn, GTIN, ISBN, ABA, BSN) in one regular expression, small enough for the HTML pattern attribute.">
 <title>rexsum</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Azeret+Mono:wght@400;500&display=swap">
@@ -79,6 +84,8 @@ ul.refs { margin: 0; padding-left: 1.1em; display: grid; gap: 8px; max-width: 72
 footer { color: var(--ink-3); font-size: 0.88rem; border-top: 1px solid var(--rule); padding-top: 18px; display: grid; gap: 6px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
+</head>
+<body>
 
 <div class="wrap">
   <header class="stack">
@@ -255,6 +262,7 @@ footer { color: var(--ink-3); font-size: 0.88rem; border-top: 1px solid var(--ru
     <ul class="refs">
       <li>Validation guides say a regex can check a card number's format but <a href="https://techearl.com/regex-validate-credit-card-luhn" target="_blank" rel="noopener">not its Luhn digit</a>, and tools call code after the match.</li>
       <li>Steven Pemberton wrote the Luhn check as an <a href="https://homepages.cwi.nl/~steven/Talks/2026/02-27-ixml/paper.html" target="_blank" rel="noopener">Invisible XML grammar</a> (CWI, 2026): 20 states read right to left. It is a grammar, not a regex.</li>
+      <li><a href="https://abstractnonsense.xyz/blog/2025-08-31-can-a-regex-match-valid-card-numbers/" target="_blank" rel="noopener">Can a regex match valid card numbers?</a> (2025) converts a Luhn automaton directly: 32,461,605 (even lengths) and 48,236,673 (odd) characters, which grep and ripgrep cannot load. rexsum's pattern is 1,500 times smaller.</li>
       <li>Regexes for "divisible by 7" are known puzzles; <a href="https://github.com/Fiona1729/DivisibilityRegexes" target="_blank" rel="noopener">generators</a> rely on a plain conversion in JFLAP or on recursive PCRE, which browsers do not support.</li>
       <li>Gruber and Holzer survey the theory: <a href="https://arxiv.org/abs/1405.5594" target="_blank" rel="noopener">From Finite Automata to Regular Expressions and Back</a>, including elimination-order heuristics and lower bounds.</li>
     </ul>
@@ -282,3 +290,5 @@ document.querySelectorAll(".copy").forEach(btn => btn.addEventListener("click", 
   }
 }));
 </script>
+</body>
+</html>
