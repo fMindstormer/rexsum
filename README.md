@@ -1,10 +1,10 @@
 # rexsum
 
 **Check-digit validation in one regular expression**, small enough for the HTML `pattern`
-attribute. A credit card number, IMEI, ISBN, UPC/EAN barcode, US routing number or Dutch BSN typed
-into a plain `<input>` is checked by the browser's own form validation, with no JavaScript:
+attribute. A credit card number, IMEI, ISBN, UPC/EAN barcode, US routing number, Dutch BSN or IBAN
+typed into a plain `<input>` is checked by the browser's own form validation, with no JavaScript:
 
-**[Try it in your browser](https://fmindstormer.github.io/rexsum/)**: ten live fields, no script.
+**[Try it in your browser](https://fmindstormer.github.io/rexsum/)**: eleven live fields, no script.
 
 ```html
 <input inputmode="numeric" pattern="(?=\d{12,19}$)(?=(?:(?:[02468]|[13579]…">   <!-- 24,471 characters -->
@@ -14,6 +14,10 @@ Common advice says this cannot be done ("regex cannot perform the Luhn check"). 
 check-digit rule is a finite automaton, so an equivalent regular expression exists. The problem is
 size: converted as one automaton, Luhn gives a regex of 37,396,808 characters. rexsum gets it
 down to 24,465 (12,602 for 16-digit card numbers), 1,500 times smaller.
+
+IBANs (mod 97) are beyond a pure regex: a German one would need about 10^8 characters. Their
+patterns use JavaScript's capture groups as registers instead and compute the remainder one
+character at a time: 59,966 characters for Germany, 49,350 for the Netherlands.
 
 | Scheme | Characters | Chromium compile | Median match |
 |---|---:|---:|---:|
@@ -32,10 +36,16 @@ down to 24,465 (12,602 for 16-digit card numbers), 1,500 times smaller.
 | ISBN-10 | 91,659 | 232 ms | 51 µs |
 | ISSN | 16,199 | 316 ms | 2 µs |
 | BSN (Dutch elfproef) | 53,594 | 116 ms | 37 µs |
+| IBAN, Germany | 59,966 | 87 ms | 18 µs |
+| IBAN, Netherlands | 49,350 | 68 ms | 15 µs |
+| IBAN, United Kingdom | 66,271 | 107 ms | 19 µs |
+| IBAN, France | 107,237 | 217 ms | 51 µs |
 
-Every pattern agrees with a reference implementation on 27,000 test strings in Python, and on 780
-strings typed into a real `<input>` in Chromium with JavaScript disabled (`tests/browser.py`).
-Matching stays linear: 1,000-digit inputs take about 2 ms at most.
+Every pattern agrees with a reference implementation on 23,000 to 27,000 test strings in Python,
+and on 780 more in V8 and in JavaScriptCore, Safari's engine (`tests/speed.mjs`, `tests/jsc.js`).
+The pure-regex patterns were also typed into a real `<input>` in Chromium with JavaScript disabled
+(`tests/browser.py`); the IBAN patterns have not been yet. Matching stays linear: 1,000-digit
+inputs take about 2 ms at most.
 
 ## How
 
@@ -54,6 +64,19 @@ Matching stays linear: 1,000-digit inputs take about 2 ms at most.
    where its regexes come out shortest, recursively (`layered_dp`). This wins for short numbers
    (EAN-8: 3,971 characters against 12,203) and for the mod-11 schemes, whose digits never share a
    character class.
+4. **For IBAN, use capture groups as registers.** Mod 97 is beyond the three steps above (see
+   Limits). But a group captured inside a lookahead keeps its value, and a backreference can test
+   it: capturing the first v characters stores the number v, and `(?=\5(?<=^...))` tests whether
+   group 5 holds 3. An IBAN pattern is a row of such lookaheads that compute the remainder one
+   character at a time, each step writing fresh groups (a repeated group resets on every
+   iteration, so the steps are written out). The remainder is held as (a, b), standing for
+   10a + b with a ≤ 13 and b ≤ 9, and never reduced: since 100 ≡ 3 (mod 97), a digit d turns
+   (a, b) into (b + ⌊(3a+d)/10⌋, (3a+d) mod 10). A letter counts as two digits. The size grows
+   linearly, about 2,500 characters per digit (`rexsum/registers.py`). Repeats are written out
+   (`...`, not `.{3}`): V8 gives every counted repeat a loop register, and with thousands of them
+   the German pattern takes 715 ms to compile instead of 58. Backreferences put these patterns
+   outside the regular languages, so they are not regular expressions in the textbook sense; the
+   `pattern` attribute accepts them all the same.
 
 The regex builder (`rexsum/regex.py`) keeps expressions small as it goes: single characters merge
 into classes, alternatives that share a first or last item are factored, repeats become `{n}` and
@@ -65,16 +88,20 @@ into classes, alternatives that share a first or last item are factored, repeats
   stars nested five deep (McNaughton: for bideterministic languages, star height equals the cycle
   rank of the minimal automaton, here a complete graph on 5 states). The constructions here grow
   like 4^(q−1) for modulus q.
-- **IBAN (mod 97) is out of reach.** 97 is prime, so nothing splits, and the ten digits add ten
-  different residues, so no character classes merge. Multiples of 97 with 4, 6 and 8 digits need
-  524, 9,653 and 100,133 characters. Each country fixes the length, so interval splitting grows
-  only polynomially: halving the length divides the size by about 2 × 97, so it grows like n^7.6.
-  That still puts a German IBAN (20 free digits) near 10^8 characters, and Norway's (13) in the
-  millions. Whether this is close to optimal is open. For plain regexes, communication-complexity
-  lower bounds (Gruber and Johannsen, FoSSaCS 2008) look like the tool; with lookaheads, which
-  express AND, OR and NOT, it becomes a question of Boolean formula size.
+- **Mod 97 is out of reach for a pure regex.** 97 is prime, so nothing splits, and the ten digits
+  add ten different residues, so no character classes merge. Multiples of 97 with 4, 6 and 8
+  digits need 524, 9,653 and 100,133 characters. Each country fixes the length, so interval
+  splitting grows only polynomially: halving the length divides the size by about 2 × 97, so it
+  grows like n^7.6. That still puts a German IBAN (20 free digits) near 10^8 characters. Whether
+  this is close to optimal is open. For plain regexes, communication-complexity lower bounds
+  (Gruber and Johannsen, FoSSaCS 2008) look like the tool; with lookaheads, which express AND, OR
+  and NOT, it becomes a question of Boolean formula size. The registers of step 4 sidestep it.
+- **IBAN patterns take the electronic form only:** capitals, no spaces. Each covers one country;
+  `python -m rexsum iban CC` makes the others, with `--layout` from the IBAN registry for
+  countries that are not built in.
 - **Damm** (a quasigroup, so nothing splits) comes out at 1,398,101 characters by direct
-  elimination. Verhoeff has not been tried.
+  elimination. Registers should handle Damm and Verhoeff, and might shrink the mod-11 patterns;
+  not tried yet.
 
 ## Prior work
 
@@ -98,7 +125,7 @@ into classes, alternatives that share a first or last item are factored, repeats
   2010).
 
 Apart from that Luhn conversion, I found no published regex that verifies a check digit (GTIN,
-ISBN, ABA, elfproef), and none small enough for a `pattern` attribute.
+ISBN, ABA, elfproef, IBAN), and none small enough for a `pattern` attribute.
 
 ## Use it
 
@@ -107,14 +134,17 @@ python -m rexsum --list                     # the shipped schemes
 python -m rexsum card                       # the pattern
 python -m rexsum card --html                # as an <input> element
 python -m rexsum custom --weights 1,3 --mod 10 --length 13     # your own weighted sum
+python -m rexsum iban DE                    # an IBAN pattern (16 countries built in)
+python -m rexsum iban LU --layout 3n13c     # any other country, layout from the IBAN registry
 python build.py                             # rebuild patterns.json (a few minutes)
 python -m pytest tests                      # check the shipped patterns
 python tests/make_cases.py tests/cases.json && python tests/browser.py patterns.json tests/cases.json
 node tests/speed.mjs patterns.json tests/cases.json speed.json
+/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Helpers/jsc tests/jsc.js -- patterns.json tests/cases.json
 ```
 
 `patterns.json` holds every pattern with its size and parts. Python 3.10+, no dependencies; the
-browser test needs Playwright.
+browser test needs Playwright, and the JavaScriptCore test (Safari's engine) runs on macOS.
 
 ## Files
 
@@ -123,8 +153,9 @@ rexsum/regex.py      regex trees with simplifying constructors, printed in JavaS
 rexsum/automata.py   automata: exploration, minimization
 rexsum/elim.py       state elimination, greedy orders
 rexsum/pipeline.py   the CRT split, period-first elimination, interval splitting, pattern assembly
+rexsum/registers.py  IBAN: capture groups as registers
 rexsum/specs.py      the shipped schemes;  rexsum/schemes.py  reference checkers and experiments
 build.py             compile and test everything, write patterns.json
-tests/               pytest, the Chromium check with JavaScript off, V8 timings
+tests/               pytest, the Chromium check with JavaScript off, V8 timings, the JavaScriptCore check
 site/                the demo page
 ```

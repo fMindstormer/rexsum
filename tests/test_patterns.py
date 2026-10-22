@@ -6,10 +6,10 @@ from pathlib import Path
 
 import pytest
 
-from rexsum.check import verify
+from rexsum.check import python_pattern, verify
 from rexsum.pipeline import compile_spec, prime_powers
 from rexsum.regex import alt, cat, chars, star, reverse, EPS
-from rexsum.specs import SPECS
+from rexsum.specs import IBAN_LAYOUTS, SPECS, iban_spec
 
 ROOT = Path(__file__).resolve().parent.parent
 LIB = json.loads((ROOT / "patterns.json").read_text())
@@ -23,7 +23,7 @@ def test_shipped_pattern(sp, check):
 
 
 def test_known_numbers():
-    rx = {k: re.compile(v["pattern"]) for k, v in LIB.items()}
+    rx = {k: re.compile(python_pattern(v["pattern"]), re.ASCII) for k, v in LIB.items()}
     assert rx["card"].fullmatch("4111111111111111")
     assert not rx["card"].fullmatch("4111111111111112")
     assert rx["imei"].fullmatch("490154203237518")
@@ -32,6 +32,21 @@ def test_known_numbers():
     assert rx["isbn10"].fullmatch("080442957X")
     assert rx["upca"].fullmatch("036000291452")
     assert rx["aba"].fullmatch("011000015")
+    assert rx["iban_de"].fullmatch("DE89370400440532013000")
+    assert not rx["iban_de"].fullmatch("DE89370400440532013001")
+    assert not rx["iban_de"].fullmatch("DE89 3704 0044 0532 0130 00")     # electronic form only
+    assert rx["iban_nl"].fullmatch("NL91ABNA0417164300")
+    assert rx["iban_gb"].fullmatch("GB82WEST12345698765432")
+    assert not rx["iban_gb"].fullmatch("GB82WEST12345698765423")
+    assert rx["iban_fr"].fullmatch("FR1420041010050500013M02606")
+
+
+@pytest.mark.parametrize("cc", sorted(IBAN_LAYOUTS))
+def test_iban_layouts(cc):
+    sp, check = iban_spec(cc, cc)
+    v = verify(sp, check, compile_spec(sp)["pattern"], k=600)
+    assert v["bad"] == 0, v["examples"]
+    assert v["valid"] > 60
 
 
 def test_small_scheme_compiles_and_is_correct():

@@ -19,10 +19,13 @@ FEATURED = [
     ("aba", "US bank routing number", "9 digits, weights 3, 7, 1", "011000015", "numeric"),
     ("sin", "Canadian SIN", "9 digits, Luhn", "046454286", "numeric"),
     ("bsn", "Dutch BSN", "9 digits, the elfproef", "111222333", "numeric"),
+    ("iban_de", "German IBAN", "DE, then 20 digits, no spaces", "DE89370400440532013000", "text"),
 ]
 
 CONSTRUCTION = {"cyclic": "period-first elimination", "cyclic, any length": "period-first elimination",
-                "intervals": "interval splitting"}
+                "intervals": "interval splitting", "registers": "capture groups as registers"}
+facts["iban_de"] = f"{lib['iban_de']['length']:,}"
+facts["iban_de_groups"] = str(lib["iban_de"]["components"]["97"]["groups"])
 
 
 def fmt(n):

@@ -118,5 +118,37 @@
   "p99_us": 81.3,
   "long1000_ms": 0,
   "mismatches": 0
+ },
+ "iban_de": {
+  "chars": 59966,
+  "compile_ms": 86.53,
+  "median_us": 18.2,
+  "p99_us": 67.3,
+  "long1000_ms": 0,
+  "mismatches": 0
+ },
+ "iban_nl": {
+  "chars": 49350,
+  "compile_ms": 67.66,
+  "median_us": 15.2,
+  "p99_us": 46.8,
+  "long1000_ms": 0,
+  "mismatches": 0
+ },
+ "iban_gb": {
+  "chars": 66271,
+  "compile_ms": 106.58,
+  "median_us": 19.4,
+  "p99_us": 60.9,
+  "long1000_ms": 0,
+  "mismatches": 0
+ },
+ "iban_fr": {
+  "chars": 107237,
+  "compile_ms": 217.17,
+  "median_us": 51.1,
+  "p99_us": 173.2,
+  "long1000_ms": 0,
+  "mismatches": 0
  }
 }

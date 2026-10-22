@@ -1,7 +1,10 @@
 """The schemes the library ships, with reference checkers for testing."""
 from __future__ import annotations
 
+import re
+
 from .pipeline import DIGITS, Spec
+from .registers import LETTERS, layout_regex
 from .schemes import DOUBLE, aba, bsn, gtin, isbn10, luhn
 
 D = DIGITS
@@ -23,6 +26,33 @@ def issn(s):
         return False
     v = [int(c) for c in s[:7]] + [10 if s[7] == "X" else int(s[7])]
     return sum(w * x for w, x in zip([8, 7, 6, 5, 4, 3, 2, 1], v)) % 11 == 0
+
+
+# BBAN layouts from the IBAN registry: n a digit, a a capital letter, c either
+IBAN_LAYOUTS = {"AT": "5n11n", "BE": "3n7n2n", "CH": "5n12c", "DE": "8n10n", "DK": "4n9n1n", "ES": "4n4n1n1n10n",
+                "FI": "3n11n", "FR": "5n5n11c2n", "GB": "4a6n8n", "IE": "4a6n8n", "IT": "1a5n5n12c",
+                "NL": "4a10n", "NO": "4n6n1n", "PL": "8n16n", "PT": "4n4n11n2n", "SE": "3n16n1n"}
+
+
+def iban(cc, layout):
+    """ISO 13616: the layout holds; moving the first four characters to the end and reading
+    letters as numbers (A = 10) gives a number that is 1 mod 97."""
+    kinds = "".join(k * int(n) for n, k in re.findall(r"(\d+)([nac])", layout))
+    allowed = {"n": set(D), "a": set(LETTERS), "c": set(D + LETTERS)}
+
+    def check(s):
+        if len(s) != 4 + len(kinds) or s[:2] != cc or not set(s[2:4]) <= allowed["n"]:
+            return False
+        if not all(c in allowed[k] for k, c in zip(kinds, s[4:])):
+            return False
+        return int("".join(str(int(c, 36)) for c in s[4:] + s[:4])) % 97 == 1
+    return check
+
+
+def iban_spec(cc, title):
+    layout = IBAN_LAYOUTS[cc]
+    return (Spec(f"iban_{cc.lower()}", title, cc + layout_regex("2n" + layout), "registers", 97,
+                 alphabet=D + LETTERS, cc=cc, layout=layout), iban(cc, layout))
 
 
 SPECS = [
@@ -54,6 +84,10 @@ SPECS = [
           weights=[8, 7, 6, 5, 4, 3, 2, 1], value=_digit_or_x(7)), issn),
     (Spec("bsn", "BSN (Dutch citizen service number)", r"\d{9}", "layered", 11,
           weights=[9, 8, 7, 6, 5, 4, 3, 2, -1], value=lambda i, c: int(c) if c.isdigit() else None), bsn),
+    iban_spec("DE", "IBAN, Germany"),
+    iban_spec("NL", "IBAN, Netherlands"),
+    iban_spec("GB", "IBAN, United Kingdom"),
+    iban_spec("FR", "IBAN, France"),
 ]
 
 FIXED = {"card16": 16, "imei": 15, "sin": 9, "ean8": 8, "upca": 12, "ean13": 13, "isbn13": 13, "gtin14": 14,
