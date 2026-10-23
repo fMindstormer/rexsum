@@ -53,6 +53,10 @@ Apple M4 (189 ms for ISBN-10), and every later keystroke a few microseconds. Saf
 pattern again at every keystroke, but quickly: 0.1 to 2.8 ms, growing with the pattern's length.
 The table's times are V8 in Node 24.
 
+Servers compress HTML, and the patterns compress well, 8 to 45 times: Luhn's 24,465 characters
+gzip to 542 bytes and the German IBAN's 59,966 to 6.6 kB. GitHub Pages sends the demo page,
+358 kB with eleven fields, as 29 kB.
+
 ## How
 
 1. **Split the modulus with lookaheads.** A sum is 0 mod 10 exactly when it is 0 mod 2 and
@@ -73,9 +77,10 @@ The table's times are V8 in Node 24.
 4. **For IBAN, use capture groups as registers.** Mod 97 is beyond the three steps above (see
    Limits). But a group captured inside a lookahead keeps its value, and a backreference can test
    it: capturing the first v characters stores the number v, and `(?=\5(?<=^...))` tests whether
-   group 5 holds 3. An IBAN pattern is a row of such lookaheads that compute the remainder one
-   character at a time, each step writing fresh groups (a repeated group resets on every
-   iteration, so the steps are written out). The remainder is held as (a, b), standing for
+   group 5 holds 3. Uezato (ICALP 2024) used the same device to prove that such regexes recognize
+   exactly NLOG; see Prior work. An IBAN pattern is a row of such lookaheads that compute the
+   remainder one character at a time, each step writing fresh groups (a repeated group resets on
+   every iteration, so the steps are written out). The remainder is held as (a, b), standing for
    10a + b with a ≤ 13 and b ≤ 9, and never reduced: since 100 ≡ 3 (mod 97), a digit d turns
    (a, b) into (b + ⌊(3a+d)/10⌋, (3a+d) mod 10). A letter counts as two digits. The size grows
    linearly, about 2,500 characters per digit (`rexsum/registers.py`). Repeats are written out
@@ -129,6 +134,12 @@ into classes, alternatives that share a first or last item are factored, repeats
   2^Θ(n) blow-up, lower bounds through cycle rank and star height, and elimination-order heuristics
   (Delgado and Morais 2004; Lombardy, Régis-Gianas and Sakarovitch 2004; Moreira, Nabais and Reis
   2010).
+- Y. Uezato, *Regular Expressions with Backreferences and Lookaheads Capture NLOG* (ICALP 2024,
+  [arXiv:2404.17492](https://arxiv.org/abs/2404.17492)), stores numbers as the lengths of captured
+  strings and compares them with backreferences inside lookaheads, the device behind the IBAN
+  patterns, and proves that such regexes recognize exactly NLOG, the languages decidable in
+  nondeterministic logarithmic space. Its constructions update captures inside loops, which
+  JavaScript rules out (a repeated group resets on every iteration); here the steps are written out.
 
 Apart from that Luhn conversion, I found no published regex that verifies a check digit (GTIN,
 ISBN, ABA, elfproef, IBAN), and none small enough for a `pattern` attribute.
