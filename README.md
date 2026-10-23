@@ -19,7 +19,7 @@ IBANs (mod 97) are beyond a pure regex: a German one would need about 10^8 chara
 patterns use JavaScript's capture groups as registers instead and compute the remainder one
 character at a time: 59,966 characters for Germany, 49,350 for the Netherlands.
 
-| Scheme | Characters | Chromium compile | Median match |
+| Scheme | Characters | V8 compile | Median match |
 |---|---:|---:|---:|
 | Luhn, any length | 24,465 | 16 ms | 7 µs |
 | Payment card, 12–19 digits | 24,471 | 16 ms | 1 µs |
@@ -42,10 +42,16 @@ character at a time: 59,966 characters for Germany, 49,350 for the Netherlands.
 | IBAN, France | 107,237 | 217 ms | 51 µs |
 
 Every pattern agrees with a reference implementation on 23,000 to 27,000 test strings in Python,
-and on 780 more in V8 and in JavaScriptCore, Safari's engine (`tests/speed.mjs`, `tests/jsc.js`).
-The pure-regex patterns were also typed into a real `<input>` in Chromium with JavaScript disabled
-(`tests/browser.py`); the IBAN patterns have not been yet. Matching stays linear: 1,000-digit
-inputs take about 2 ms at most.
+and on 780 more in V8 and in JavaScriptCore (`tests/speed.mjs`, `tests/jsc.js`). The same 780 were
+entered into a real `<input>` with JavaScript disabled in Chromium 156 and WebKit 27.2
+(`tests/browser.py`), and in Safari 27's own engine on macOS (`tests/safari.swift`): the `pattern`
+attribute alone gets every one right. Matching stays linear: 1,000-digit inputs take about 2 ms at
+most.
+
+The first keystroke in a field compiles its pattern. In Chromium that takes 2 to 62 ms on an
+Apple M4 (189 ms for ISBN-10), and every later keystroke a few microseconds. Safari compiles the
+pattern again at every keystroke, but quickly: 0.1 to 2.8 ms, growing with the pattern's length.
+The table's times are V8 in Node 24.
 
 ## How
 
@@ -141,10 +147,12 @@ python -m pytest tests                      # check the shipped patterns
 python tests/make_cases.py tests/cases.json && python tests/browser.py patterns.json tests/cases.json
 node tests/speed.mjs patterns.json tests/cases.json speed.json
 /System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Helpers/jsc tests/jsc.js -- patterns.json tests/cases.json
+swiftc -O tests/safari.swift -o safari-check && ./safari-check patterns.json tests/cases.json
 ```
 
 `patterns.json` holds every pattern with its size and parts. Python 3.10+, no dependencies; the
-browser test needs Playwright, and the JavaScriptCore test (Safari's engine) runs on macOS.
+browser test needs Playwright (`playwright install chromium firefox webkit`), and the
+JavaScriptCore and Safari tests run on macOS.
 
 ## Files
 
@@ -156,6 +164,6 @@ rexsum/pipeline.py   the CRT split, period-first elimination, interval splitting
 rexsum/registers.py  IBAN: capture groups as registers
 rexsum/specs.py      the shipped schemes;  rexsum/schemes.py  reference checkers and experiments
 build.py             compile and test everything, write patterns.json
-tests/               pytest, the Chromium check with JavaScript off, V8 timings, the JavaScriptCore check
+tests/               pytest, the browser and Safari checks with JavaScript off, V8 timings, the JavaScriptCore check
 site/                the demo page
 ```

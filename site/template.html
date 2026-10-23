@@ -136,7 +136,7 @@ footer { color: var(--ink-3); font-size: 0.88rem; border-top: 1px solid var(--ru
 
   <section class="stack" aria-labelledby="all">
     <h2 id="all">Every pattern</h2>
-    <p>Each pattern was tested against a reference implementation on 23,000 to 27,000 strings in Python, and on 780 more in the regex engines of Chromium (V8) and Safari (JavaScriptCore). The pure-regex patterns were also typed into a real <code>&lt;input&gt;</code> in Chromium with JavaScript off; the IBAN patterns have not been yet. No mismatches. Times are for V8 with the <code>v</code> flag the <code>pattern</code> attribute uses.</p>
+    <p>Each pattern was tested against a reference implementation on 23,000 to 27,000 strings in Python, and on 780 more in the regex engines of Chromium (V8) and Safari (JavaScriptCore). The same 780 were entered into a real <code>&lt;input&gt;</code> with JavaScript off, in Chromium and in Safari's engine. No mismatches. Times are for V8 in Node with the <code>v</code> flag the <code>pattern</code> attribute uses. In a browser, the first keystroke compiles the pattern and later ones take microseconds; Safari compiles it again at every keystroke, in under 3 ms.</p>
     <div class="tablebox">
       <table>
         <thead><tr><th>Scheme</th><th class="num">Characters</th><th>Parts</th><th>Construction</th><th class="num">Compile (ms)</th><th class="num">Match (µs)</th></tr></thead>
@@ -152,7 +152,7 @@ footer { color: var(--ink-3); font-size: 0.88rem; border-top: 1px solid var(--ru
     <div class="limits">
       <div class="limit"><b>Mod 97 as a pure regex</b><p>Eight-digit multiples of 97 already need {{mod97_8}} characters, and a German IBAN would need about 10<sup>8</sup>. The IBAN patterns here use capture groups instead, and accept only the electronic form: capitals, no spaces.</p></div>
       <div class="limit"><b>Damm check digit</b><p>Its table is a quasigroup, not a group, so nothing splits. The direct conversion gives {{damm}} characters. Capture registers should handle it as they handle IBAN; not tried yet.</p></div>
-      <div class="limit"><b>ISBN-10 is the largest pure regex</b><p>Mod 11 is prime, so its pattern is one piece of 91,659 characters. Chromium compiles it in about a quarter of a second.</p></div>
+      <div class="limit"><b>ISBN-10 is the largest pure regex</b><p>Mod 11 is prime, so its pattern is one piece of 91,659 characters. The first keystroke compiles it: about 0.2 seconds in Chromium.</p></div>
     </div>
   </section>
 
