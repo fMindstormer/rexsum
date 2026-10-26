@@ -28,7 +28,7 @@ jobs:
           V="${TAG#v}"
           echo "V=$V" >> "$GITHUB_ENV"
           mkdir dist
-          git archive --format=tar --prefix="rexsum-$V/" "$TAG" | gzip -n > "dist/rexsum-$V.tar.gz"
+          git archive --format=tar --prefix="rexsum-$V/" HEAD | gzip -n > "dist/rexsum-$V.tar.gz"
           mkdir x && tar -xzf "dist/rexsum-$V.tar.gz" -C x
       - name: Test the extracted bundle
         working-directory: x/rexsum-${{ env.V }}
