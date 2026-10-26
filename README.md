@@ -258,7 +258,7 @@ inputs, not a worst-case guarantee.
 
 **Size on the wire.** Servers compress HTML, and the patterns compress well, 8 to 45 times:
 Luhn's 24,465 characters gzip to 542 bytes and the German IBAN's 59,966 to 6.6 kB. GitHub Pages
-sends the demo page, 358 kB with eleven fields, as 29 kB.
+sends the demo page, 360 kB with eleven fields, as 30 kB.
 
 ## Where this sits
 
