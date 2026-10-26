@@ -113,8 +113,8 @@ IBANs are checked modulo 97. 97 is prime, so step 1 has nothing to split, and ev
 different residue, so nothing merges either. A pure regex for a German IBAN would need about
 10<sup>8</sup> characters (see Limits).
 
-So the IBAN patterns leave regular expressions behind and use the other half of the instruction
-set: capture groups. Three properties of JavaScript make a group usable as a register:
+The language itself is not the obstacle; the size is. So the IBAN patterns use the other half of
+the instruction set, capture groups, to say the same thing far more compactly. Three properties of JavaScript make a group usable as a register:
 
 - **A group can hold a number.** At position 0, a lookahead that captures the first v
   characters stores v as the group's length: `(?=(...))` stores 3.
@@ -152,8 +152,12 @@ Two engine details forced the final shape:
   a loop register, and with thousands of them the German pattern takes 715 ms to compile instead
   of 58.
 
-Backreferences take these patterns outside the regular languages, so strictly speaking they are
-no longer regular expressions. The `pattern` attribute accepts them all the same.
+A note on terms. Backreferences make the syntax more expressive than regular expressions: in
+general, a pattern that uses them can describe languages no finite automaton accepts. These
+patterns do not. Each covers one country, so its strings have one fixed length, and the language
+is finite and therefore regular. What the backreferences buy is size: a computed remainder is
+stored once and reused, where a pure regex has to spell out every path to it. For Germany that is
+59,966 characters instead of about 10<sup>8</sup>.
 
 ### Keeping the output small
 

@@ -214,12 +214,12 @@ footer { color: var(--ink-3); font-size: 0.88rem; border-top: 1px solid var(--ru
   </section>
 
   <section class="stack" aria-labelledby="iban">
-    <h2 id="iban">IBAN: past what a regular expression can do</h2>
-    <p>IBANs are checked mod 97. That is prime, so nothing splits, and the constructions above grow like n<sup>7.6</sup> in the number of digits: a German IBAN would need about 10<sup>8</sup> characters. But a JavaScript regex can do more than a regular expression. A group captured inside a lookahead keeps its value, and a backreference can test it later, so a group can serve as a register: capturing the first v characters stores the number v. Uezato used the same device in 2024 to prove exactly what such regexes can recognize (see below).</p>
+    <h2 id="iban">IBAN: too big for a pure regex</h2>
+    <p>IBANs are checked mod 97. That is prime, so nothing splits, and the constructions above grow like n<sup>7.6</sup> in the number of digits: a German IBAN would need about 10<sup>8</sup> characters. But a JavaScript regex has more syntax than a textbook regular expression. A group captured inside a lookahead keeps its value, and a backreference can test it later, so a group can serve as a register: capturing the first v characters stores the number v. Uezato used the same device in 2024 to prove exactly what such regexes can recognize (see below).</p>
     <pre class="rx">(?=(...))          stores 3: the group captures the first 3 characters
 (?=\5(?&lt;=^...))    tests whether group 5 holds 3</pre>
     <p>Each IBAN pattern is a row of such lookaheads. Each step reads one character and writes the new remainder into fresh groups, the way you would compute it on paper. The remainder is held as two small numbers, a ≤ 13 and b ≤ 9, standing for 10a + b and never reduced: since 100 leaves 3 mod 97, a digit d turns (a, b) into (b + ⌊(3a + d) / 10⌋, (3a + d) mod 10). A letter counts as two digits. The German pattern has 59,966 characters and 69 groups, and the size grows linearly with the length.</p>
-    <p>Backreferences take these patterns outside the regular languages, so they are not regular expressions in the textbook sense. The <code>pattern</code> attribute accepts them all the same.</p>
+    <p>Backreferences make the syntax more expressive than regular expressions, but these patterns do not need that power: each covers one country, so its strings have one fixed length, and the language is finite and therefore regular. What the backreferences buy is size. A computed remainder is stored once and reused, where a pure regex has to spell out every path to it: 59,966 characters for Germany instead of about 10<sup>8</sup>.</p>
   </section>
 
   <section class="stack" aria-labelledby="all">
