@@ -71,3 +71,40 @@ def test_prime_powers():
     assert prime_powers(10) == [2, 5]
     assert prime_powers(11) == [11]
     assert prime_powers(36) == [4, 9]
+
+
+@pytest.mark.parametrize("name", sorted(LIB))
+def test_boundary_cases(name):
+    from boundary import cases
+    rx = re.compile(python_pattern(LIB[name]["pattern"]), re.ASCII)
+    wrong = [(s, want, why) for s, want, why in cases()[name] if (rx.fullmatch(s) is not None) != want]
+    assert not wrong
+
+
+def test_a_wrong_pattern_is_caught():
+    sp, check = next((s, c) for s, c in SPECS if s.name == "card")
+    assert verify(sp, check, LIB["card16"]["pattern"], k=2000)["bad"] > 0
+
+
+@pytest.mark.parametrize("name", sorted(LIB))
+def test_standalone_example(name):
+    import html as h
+    from rexsum.meta import SCHEMES
+    page = (ROOT / "site" / "examples" / f"{name}.html").read_text()
+    assert "<script" not in page.lower() and "<link" not in page.lower() and "@import" not in page
+    assert "url(" not in page and 'src="' not in page
+    attr = re.search(r'\spattern="([^"]*)"', page).group(1)
+    assert h.unescape(attr) == LIB[name]["pattern"]
+    assert " required " in page
+    assert SCHEMES[name]["valid"] in page and SCHEMES[name]["invalid"] in page
+
+
+def test_html_export_keyboard():
+    from rexsum.__main__ import main
+    import contextlib
+    import io
+    for name, numeric in [("card", True), ("isbn10", False), ("issn", False), ("iban_de", False)]:
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            main([name, "--html"])
+        assert ('inputmode="numeric"' in out.getvalue()) == numeric, name

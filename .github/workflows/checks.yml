@@ -1,0 +1,58 @@
+name: Checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    name: pytest and generated files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pytest
+      - run: python -m pytest tests -q
+      - name: The committed test cases, page, examples and README table are up to date
+        run: |
+          python tests/make_cases.py tests/cases.json > /dev/null
+          python site/build_page.py
+          git status --porcelain
+          test -z "$(git status --porcelain)"
+
+  v8:
+    name: V8 with the v flag
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - run: node tests/speed.mjs patterns.json tests/cases.json
+
+  browsers:
+    name: ${{ matrix.browser }}, JavaScript off
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install playwright==1.64.1
+      - run: python -m playwright install --with-deps ${{ matrix.browser }}
+      - run: python tests/browser.py patterns.json tests/cases.json --browser ${{ matrix.browser }} --report browser-${{ matrix.browser }}.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-${{ matrix.browser }}
+          path: browser-${{ matrix.browser }}.json

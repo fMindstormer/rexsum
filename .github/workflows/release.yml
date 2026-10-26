@@ -1,0 +1,65 @@
+name: Release
+
+# Push a tag like v0.1.0. The bundle is made from the tagged tree, extracted, and tested as
+# extracted: pytest, the generated files, V8, and the HTML pattern checks in Chromium, Firefox and
+# WebKit with JavaScript off. Only if every check passes is the release published, with SHA-256 sums.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Bundle
+        run: |
+          V="${TAG#v}"
+          echo "V=$V" >> "$GITHUB_ENV"
+          mkdir dist
+          git archive --format=tar --prefix="rexsum-$V/" "$TAG" | gzip -n > "dist/rexsum-$V.tar.gz"
+          mkdir x && tar -xzf "dist/rexsum-$V.tar.gz" -C x
+      - name: Test the extracted bundle
+        working-directory: x/rexsum-${{ env.V }}
+        run: |
+          pip install pytest playwright==1.64.1
+          python -m playwright install --with-deps chromium firefox webkit
+          cp -R . ../regen && (cd ../regen && python tests/make_cases.py tests/cases.json > /dev/null && python site/build_page.py)
+          diff -r -x __pycache__ . ../regen
+          python -m pytest tests -q -p no:cacheprovider
+          node tests/speed.mjs patterns.json tests/cases.json
+          python tests/browser.py patterns.json tests/cases.json --report "$GITHUB_WORKSPACE/dist/browser-report.json"
+      - name: Assets and notes
+        run: |
+          cp "x/rexsum-$V/patterns.json" dist/
+          (cd "x/rexsum-$V/site" && zip -X -q -r "$GITHUB_WORKSPACE/dist/rexsum-examples-$V.zip" examples)
+          (cd dist && sha256sum * > SHA256SUMS)
+          python - <<'EOF'
+          import json, os
+          r = json.load(open("dist/browser-report.json"))
+          lines = [open(f"x/rexsum-{os.environ['V']}/RELEASE.md").read().strip(), "",
+                   f"## Browser verification ({r['date']}, {r['machine']}, tested from the extracted bundle)", "",
+                   "| Engine (Playwright build) | Version | Patterns | Test strings | Mismatches | Examples |", "|---|---|---:|---:|---:|---:|"]
+          for e, x in r["engines"].items():
+              strings = sum(p["strings"] for p in x["patterns"].values())
+              bad = sum(len(p["mismatches"]) for p in x["patterns"].values())
+              ok = sum(all(v.values()) for v in x["examples"].values())
+              lines.append(f"| {e} | {x['version']} | {len(x['patterns'])} | {strings:,} | {bad} | {ok} of {len(x['examples'])} pass |")
+          lines += ["", "SHA-256:", "", "```", open("dist/SHA256SUMS").read().strip(), "```"]
+          open("notes.md", "w").write("\n".join(lines) + "\n")
+          EOF
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$TAG" dist/* --title "rexsum $TAG" --notes-file notes.md

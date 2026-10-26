@@ -12,7 +12,6 @@
 from __future__ import annotations
 
 import argparse
-import html
 import json
 import re
 import sys
@@ -20,6 +19,7 @@ from pathlib import Path
 
 from .pipeline import DIGITS, Spec, compile_spec
 from .registers import iban, positions
+from .meta import input_element, keyboard
 from .specs import IBAN_LAYOUTS
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -53,7 +53,7 @@ def main(argv=None):
             ap.error("--layout takes runs like 4a14n, for a BBAN of 11 to 30 characters")
         pattern, groups = iban(cc, layout)
         print(f"{len(pattern):,} characters, {groups} groups", file=sys.stderr)
-        print(f'<input autocapitalize="characters" pattern="{html.escape(pattern, quote=True)}">' if a.html else pattern)
+        print(input_element(pattern, keyboard(letters=True)) if a.html else pattern)
         return 0
     if a.scheme == "custom":
         if not a.weights:
@@ -72,7 +72,8 @@ def main(argv=None):
         if a.scheme not in lib:
             ap.error(f"unknown scheme {a.scheme!r}; try --list")
         pattern = lib[a.scheme]["pattern"]
-    print(f'<input inputmode="numeric" pattern="{html.escape(pattern, quote=True)}">' if a.html else pattern)
+    kb = keyboard(letters=False) if a.scheme == "custom" else keyboard(a.scheme)
+    print(input_element(pattern, kb) if a.html else pattern)
     return 0
 
 

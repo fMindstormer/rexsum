@@ -56,7 +56,8 @@ a { color: var(--accent); }
 .field input:valid:not(:placeholder-shown) ~ .status::before { content: "\2713  Check digit correct"; color: var(--ok); font-weight: 700; }
 .field input:invalid ~ .status::before { content: "\2717  Wrong check digit, length or character"; color: var(--bad); font-weight: 700; }
 .fmeta { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; color: var(--ink-3); font-size: 0.85rem; border-top: 1px solid var(--rule); padding-top: 10px; }
-.copy { font: inherit; font-weight: 700; color: var(--accent); background: var(--accent-soft); border: 0; border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+.actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.copy { font: inherit; font-weight: 700; color: var(--accent); background: var(--accent-soft); border: 0; border-radius: 6px; padding: 5px 10px; cursor: pointer; text-decoration: none; }
 .copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .hint { color: var(--ink-3); font-size: 0.92rem; }
 
@@ -96,7 +97,7 @@ footer { color: var(--ink-3); font-size: 0.88rem; border-top: 1px solid var(--ru
 
   <section class="stack" aria-labelledby="try">
     <h2 id="try">Try them</h2>
-    <p class="hint">Each field holds a valid example. Change one digit, or swap two neighbours, and watch it fail.</p>
+    <p class="hint">Each field holds a valid example. Change the payment card's last digit from 1 to 2 and the browser rejects it, using only the <code>pattern</code> attribute. A check digit catches any single wrong digit, but not every swap of neighbours: Luhn misses 09 ↔ 90, so 4009000000000003 and 4090000000000003 both pass. <b>Download HTML</b> gives a standalone page with no script, to open from disk.</p>
     <form class="fields" onsubmit="return false" novalidate><!--CARDS-->
     </form>
   </section>

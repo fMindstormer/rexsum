@@ -44,6 +44,12 @@ let check = """
     """
 
 _ = NSApplication.shared
+let safari = Bundle(path: "/Applications/Safari.app")?.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
+let webkit = Bundle(identifier: "com.apple.WebKit")?.infoDictionary?["CFBundleVersion"] as? String ?? "?"
+var machine = utsname(); uname(&machine)
+let arch = withUnsafeBytes(of: &machine.machine) { String(decoding: $0.prefix(while: { $0 != 0 }), as: UTF8.self) }
+print("Safari \(safari), WebKit \(webkit), \(ProcessInfo.processInfo.operatingSystemVersionString), \(arch), " +
+      ISO8601DateFormatter().string(from: Date()).prefix(10))
 let config = WKWebViewConfiguration()
 config.defaultWebpagePreferences.allowsContentJavaScript = false
 let view = WKWebView(frame: .zero, configuration: config)

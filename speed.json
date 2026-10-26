@@ -1,154 +1,163 @@
 {
- "luhn": {
-  "chars": 24465,
-  "compile_ms": 16.24,
-  "median_us": 6.9,
-  "p99_us": 68.4,
-  "long1000_ms": 1.98,
-  "mismatches": 0
+ "meta": {
+  "date": "2026-10-26",
+  "node": "v24.6.0",
+  "v8": "13.6.233.10-node.24",
+  "platform": "darwin 27.0.0 arm64",
+  "cpu": "Apple M4"
  },
- "card": {
-  "chars": 24471,
-  "compile_ms": 16.36,
-  "median_us": 1.1,
-  "p99_us": 44.5,
-  "long1000_ms": 0,
-  "mismatches": 0
- },
- "card16": {
-  "chars": 12602,
-  "compile_ms": 7.07,
-  "median_us": 1.8,
-  "p99_us": 4.2,
-  "long1000_ms": 0,
-  "mismatches": 0
- },
- "imei": {
-  "chars": 24466,
-  "compile_ms": 16.19,
-  "median_us": 7.2,
-  "p99_us": 21.7,
-  "long1000_ms": 0,
-  "mismatches": 0
- },
- "sin": {
-  "chars": 10379,
-  "compile_ms": 75.85,
-  "median_us": 0.7,
-  "p99_us": 2.3,
-  "long1000_ms": 0,
-  "mismatches": 0
- },
- "gtin": {
-  "chars": 23806,
-  "compile_ms": 21.21,
-  "median_us": 13.8,
-  "p99_us": 76.3,
-  "long1000_ms": 2.02,
-  "mismatches": 0
- },
- "ean8": {
-  "chars": 3971,
-  "compile_ms": 10.45,
-  "median_us": 0.9,
-  "p99_us": 2.7,
-  "long1000_ms": 0,
-  "mismatches": 0
- },
- "upca": {
-  "chars": 12262,
-  "compile_ms": 8.38,
-  "median_us": 2.2,
-  "p99_us": 24.1,
-  "long1000_ms": 0,
-  "mismatches": 0
- },
- "ean13": {
-  "chars": 23808,
-  "compile_ms": 20.84,
-  "median_us": 12.5,
-  "p99_us": 39.7,
-  "long1000_ms": 0,
-  "mismatches": 0
- },
- "isbn13": {
-  "chars": 23814,
-  "compile_ms": 20.99,
-  "median_us": 10.2,
-  "p99_us": 36.5,
-  "long1000_ms": 0,
-  "mismatches": 0
- },
- "gtin14": {
-  "chars": 12262,
-  "compile_ms": 8.41,
-  "median_us": 2.7,
-  "p99_us": 5.8,
-  "long1000_ms": 0,
-  "mismatches": 0
- },
- "aba": {
-  "chars": 10022,
-  "compile_ms": 32.16,
-  "median_us": 1.2,
-  "p99_us": 3.3,
-  "long1000_ms": 0,
-  "mismatches": 0
- },
- "isbn10": {
-  "chars": 91659,
-  "compile_ms": 231.58,
-  "median_us": 50.5,
-  "p99_us": 97.2,
-  "long1000_ms": 0,
-  "mismatches": 0
- },
- "issn": {
-  "chars": 16199,
-  "compile_ms": 315.87,
-  "median_us": 1.5,
-  "p99_us": 5.2,
-  "long1000_ms": 0,
-  "mismatches": 0
- },
- "bsn": {
-  "chars": 53594,
-  "compile_ms": 115.94,
-  "median_us": 36.7,
-  "p99_us": 81.3,
-  "long1000_ms": 0,
-  "mismatches": 0
- },
- "iban_de": {
-  "chars": 59966,
-  "compile_ms": 86.53,
-  "median_us": 18.2,
-  "p99_us": 67.3,
-  "long1000_ms": 0,
-  "mismatches": 0
- },
- "iban_nl": {
-  "chars": 49350,
-  "compile_ms": 67.66,
-  "median_us": 15.2,
-  "p99_us": 46.8,
-  "long1000_ms": 0,
-  "mismatches": 0
- },
- "iban_gb": {
-  "chars": 66271,
-  "compile_ms": 106.58,
-  "median_us": 19.4,
-  "p99_us": 60.9,
-  "long1000_ms": 0,
-  "mismatches": 0
- },
- "iban_fr": {
-  "chars": 107237,
-  "compile_ms": 217.17,
-  "median_us": 51.1,
-  "p99_us": 173.2,
-  "long1000_ms": 0,
-  "mismatches": 0
+ "rows": {
+  "luhn": {
+   "chars": 24465,
+   "compile_ms": 10.06,
+   "median_us": 0.9,
+   "p99_us": 17.8,
+   "long1000_ms": 0.96,
+   "mismatches": 0
+  },
+  "card": {
+   "chars": 24471,
+   "compile_ms": 9.93,
+   "median_us": 0.6,
+   "p99_us": 17,
+   "long1000_ms": 0,
+   "mismatches": 0
+  },
+  "card16": {
+   "chars": 12602,
+   "compile_ms": 3.65,
+   "median_us": 1,
+   "p99_us": 4,
+   "long1000_ms": 0,
+   "mismatches": 0
+  },
+  "imei": {
+   "chars": 24466,
+   "compile_ms": 8.97,
+   "median_us": 1.8,
+   "p99_us": 6.5,
+   "long1000_ms": 0,
+   "mismatches": 0
+  },
+  "sin": {
+   "chars": 10379,
+   "compile_ms": 30.51,
+   "median_us": 0.3,
+   "p99_us": 1.2,
+   "long1000_ms": 0,
+   "mismatches": 0
+  },
+  "gtin": {
+   "chars": 23806,
+   "compile_ms": 17.94,
+   "median_us": 1.9,
+   "p99_us": 23.8,
+   "long1000_ms": 1.11,
+   "mismatches": 0
+  },
+  "ean8": {
+   "chars": 3971,
+   "compile_ms": 5.43,
+   "median_us": 0.5,
+   "p99_us": 1.5,
+   "long1000_ms": 0,
+   "mismatches": 0
+  },
+  "upca": {
+   "chars": 12262,
+   "compile_ms": 5.81,
+   "median_us": 1.1,
+   "p99_us": 2.5,
+   "long1000_ms": 0,
+   "mismatches": 0
+  },
+  "ean13": {
+   "chars": 23808,
+   "compile_ms": 16.9,
+   "median_us": 2.7,
+   "p99_us": 6.4,
+   "long1000_ms": 0,
+   "mismatches": 0
+  },
+  "isbn13": {
+   "chars": 23814,
+   "compile_ms": 15.25,
+   "median_us": 1.9,
+   "p99_us": 6,
+   "long1000_ms": 0,
+   "mismatches": 0
+  },
+  "gtin14": {
+   "chars": 12262,
+   "compile_ms": 5.76,
+   "median_us": 1.5,
+   "p99_us": 4.6,
+   "long1000_ms": 0,
+   "mismatches": 0
+  },
+  "aba": {
+   "chars": 10022,
+   "compile_ms": 16.09,
+   "median_us": 0.7,
+   "p99_us": 2.3,
+   "long1000_ms": 0,
+   "mismatches": 0
+  },
+  "isbn10": {
+   "chars": 91659,
+   "compile_ms": 159.75,
+   "median_us": 4.9,
+   "p99_us": 11.2,
+   "long1000_ms": 0,
+   "mismatches": 0
+  },
+  "issn": {
+   "chars": 16199,
+   "compile_ms": 12.43,
+   "median_us": 2.6,
+   "p99_us": 5,
+   "long1000_ms": 0,
+   "mismatches": 0
+  },
+  "bsn": {
+   "chars": 53594,
+   "compile_ms": 71.13,
+   "median_us": 3.2,
+   "p99_us": 6.5,
+   "long1000_ms": 0,
+   "mismatches": 0
+  },
+  "iban_de": {
+   "chars": 59966,
+   "compile_ms": 54.32,
+   "median_us": 13,
+   "p99_us": 27.5,
+   "long1000_ms": 0,
+   "mismatches": 0
+  },
+  "iban_nl": {
+   "chars": 49350,
+   "compile_ms": 36.75,
+   "median_us": 10.8,
+   "p99_us": 55.2,
+   "long1000_ms": 0,
+   "mismatches": 0
+  },
+  "iban_gb": {
+   "chars": 66271,
+   "compile_ms": 85.07,
+   "median_us": 15,
+   "p99_us": 57.1,
+   "long1000_ms": 0,
+   "mismatches": 0
+  },
+  "iban_fr": {
+   "chars": 107237,
+   "compile_ms": 99.72,
+   "median_us": 25,
+   "p99_us": 87.7,
+   "long1000_ms": 0,
+   "mismatches": 0
+  }
  }
 }

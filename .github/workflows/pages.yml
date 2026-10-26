@@ -3,7 +3,7 @@ name: Pages
 on:
   push:
     branches: [main]
-    paths: ["site/index.html", ".github/workflows/pages.yml"]
+    paths: ["site/index.html", "site/examples/**", ".github/workflows/pages.yml"]
   workflow_dispatch:
 
 permissions:
@@ -23,7 +23,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - run: mkdir _site && cp site/index.html _site/
+      - run: mkdir _site && cp -R site/index.html site/examples _site/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

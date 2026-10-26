@@ -14,6 +14,11 @@ from .automata import DFA, explore
 D = "0123456789"
 
 
+def digits(s: str) -> bool:
+    """ASCII digits only, as in a JavaScript regex: str.isdigit() also accepts other scripts' digits."""
+    return s.isascii() and s.isdigit()
+
+
 @dataclass
 class Scheme:
     name: str
@@ -31,7 +36,7 @@ DOUBLE = [0, 2, 4, 6, 8, 1, 3, 5, 7, 9]
 
 
 def luhn(s: str) -> bool:
-    if not s or not s.isdigit():
+    if not s or not digits(s):
         return False
     t = 0
     for i, c in enumerate(reversed(s)):
@@ -60,7 +65,7 @@ def weighted_rev(weights, mod) -> Callable[[], DFA]:
 
 
 def gtin(s: str) -> bool:
-    if not s or not s.isdigit():
+    if not s or not digits(s):
         return False
     return sum(int(c) * (3 if i % 2 else 1) for i, c in enumerate(reversed(s))) % 10 == 0
 
@@ -95,7 +100,7 @@ def isbn13_dfa() -> DFA:
 
 # ------------------------------------------------------------------ ISBN-10
 def isbn10(s: str) -> bool:
-    if len(s) != 10 or not s[:9].isdigit() or not (s[9].isdigit() or s[9] == "X"):
+    if len(s) != 10 or not digits(s[:9]) or not (digits(s[9]) or s[9] == "X"):
         return False
     vals = [int(c) for c in s[:9]] + [10 if s[9] == "X" else int(s[9])]
     return sum((i + 1) * v for i, v in enumerate(vals)) % 11 == 0
@@ -112,7 +117,7 @@ def isbn10_dfa() -> DFA:
 
 # ------------------------------------------------------------------ ABA routing numbers
 def aba(s: str) -> bool:
-    if len(s) != 9 or not s.isdigit():
+    if len(s) != 9 or not digits(s):
         return False
     w = [3, 7, 1] * 3
     return sum(a * int(c) for a, c in zip(w, s)) % 10 == 0
@@ -125,7 +130,7 @@ def aba_dfa() -> DFA:
 
 # ------------------------------------------------------------------ Dutch BSN (elfproef)
 def bsn(s: str) -> bool:
-    if len(s) != 9 or not s.isdigit():
+    if len(s) != 9 or not digits(s):
         return False
     w = [9, 8, 7, 6, 5, 4, 3, 2, -1]
     return sum(a * int(c) for a, c in zip(w, s)) % 11 == 0
@@ -141,7 +146,7 @@ DNI = "TRWAGMYFPDXBNJZSQVHLCKE"
 
 
 def dni(s: str) -> bool:
-    return len(s) == 9 and s[:8].isdigit() and s[8] == DNI[int(s[:8]) % 23]
+    return len(s) == 9 and digits(s[:8]) and s[8] == DNI[int(s[:8]) % 23]
 
 
 def dni_dfa() -> DFA:
@@ -161,7 +166,7 @@ DAMM = [
 
 
 def damm(s: str) -> bool:
-    if not s or not s.isdigit():
+    if not s or not digits(s):
         return False
     v = 0
     for c in s:
@@ -184,7 +189,7 @@ VP = [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 5, 7, 6, 2, 8, 3, 0, 9, 4], [5, 8, 0, 
 
 
 def verhoeff(s: str) -> bool:
-    if not s or not s.isdigit():
+    if not s or not digits(s):
         return False
     c = 0
     for i, ch in enumerate(reversed(s)):
@@ -200,7 +205,7 @@ def verhoeff_rev() -> DFA:
 # ------------------------------------------------------------------ divisibility (for the theory)
 def divisible(n):
     def check(s):
-        return bool(s) and s.isdigit() and int(s) % n == 0
+        return bool(s) and digits(s) and int(s) % n == 0
 
     def build():
         return explore((0, False), lambda q, c: ((q[0] * 10 + int(c)) % n, True), lambda q: q[0] == 0 and q[1], D)
@@ -213,7 +218,7 @@ def iban_country(cc: str, bban_len: int):
     code = "".join(str(ord(c) - 55) for c in cc)
 
     def check(s):
-        if len(s) != 4 + bban_len or s[:2] != cc or not s[2:].isdigit():
+        if len(s) != 4 + bban_len or s[:2] != cc or not digits(s[2:]):
             return False
         return int(s[4:] + code + s[2:4]) % 97 == 1
 

@@ -13,8 +13,37 @@ validation does the arithmetic:
 <input inputmode="numeric" pattern="(?=\d{12,19}$)(?=(?:(?:[02468]|[13579]…">   <!-- 24,471 characters -->
 ```
 
-**[Try it in your browser](https://fmindstormer.github.io/rexsum/)**: eleven live fields, and the
-page's only script runs its copy buttons.
+<picture>
+  <source media="(prefers-reduced-motion: reduce)" srcset="media/demo-poster.png">
+  <img src="media/demo.gif" width="720" alt="A standalone example page opened from disk in Chromium with JavaScript disabled. Changing a payment card number's last digit from 1 to 2 turns the field red, and changing it back turns it green. Then the same with a German IBAN.">
+</picture>
+
+**[Try online](https://fmindstormer.github.io/rexsum/) ·
+[Download HTML](https://fmindstormer.github.io/rexsum/examples/card.html) ·
+[Read the construction](#how-the-arithmetic-gets-into-the-syntax)**
+
+## Use it
+
+Every shipped pattern comes as a standalone page in [`site/examples/`](site/examples/), also
+[online](https://fmindstormer.github.io/rexsum/examples/card.html) and zipped with each
+[release](https://github.com/fMindstormer/rexsum/releases): a field, a valid and an invalid
+sample, and CSS that colours the field by `:valid` and `:invalid`. No script, no external files.
+Open one from disk, turn JavaScript off, and change the last character.
+
+To put a pattern into your own form:
+
+```sh
+python -m rexsum --list                     # the shipped schemes
+python -m rexsum card                       # the pattern
+python -m rexsum card --html                # as an <input> element, with the right keyboard
+python -m rexsum custom --weights 1,3 --mod 10 --length 13     # your own weighted sum
+python -m rexsum iban DE                    # an IBAN pattern (16 countries built in)
+python -m rexsum iban LU --layout 3n13c     # any other country, layout from the IBAN registry
+```
+
+Python 3.10 or later, no dependencies. A browser never tests an empty field against the pattern,
+so add `required` if the field must be filled. `patterns.json` holds every pattern with its size
+and parts.
 
 The rest of this README explains what kind of machine a `pattern` attribute is, why getting
 arithmetic into it is hard, the four constructions that make it fit, how the results hold up in
@@ -168,29 +197,31 @@ which is stricter than older JavaScript about what may appear inside a character
 
 ## Results
 
+<!-- table -->
 | Scheme | Characters | V8 compile | Median match |
 |---|---:|---:|---:|
-| Luhn, any length | 24,465 | 16 ms | 7 µs |
-| Payment card, 12–19 digits | 24,471 | 16 ms | 1 µs |
-| Payment card, 16 digits | 12,602 | 7 ms | 2 µs |
-| IMEI (15 digits) | 24,466 | 16 ms | 7 µs |
-| Canadian SIN (9 digits) | 10,379 | 76 ms | 1 µs |
-| GTIN, any length | 23,806 | 21 ms | 14 µs |
-| EAN-8 | 3,971 | 10 ms | 1 µs |
-| UPC-A | 12,262 | 8 ms | 2 µs |
-| EAN-13 | 23,808 | 21 ms | 13 µs |
-| ISBN-13 | 23,814 | 21 ms | 10 µs |
-| GTIN-14 | 12,262 | 8 ms | 3 µs |
-| ABA routing number | 10,022 | 32 ms | 1 µs |
-| ISBN-10 | 91,659 | 232 ms | 51 µs |
-| ISSN | 16,199 | 316 ms | 2 µs |
-| BSN (Dutch elfproef) | 53,594 | 116 ms | 37 µs |
-| IBAN, Germany | 59,966 | 87 ms | 18 µs |
-| IBAN, Netherlands | 49,350 | 68 ms | 15 µs |
-| IBAN, United Kingdom | 66,271 | 107 ms | 19 µs |
-| IBAN, France | 107,237 | 217 ms | 51 µs |
+| Luhn, any length | 24,465 | 10 ms | 0.9 µs |
+| Payment card, 12–19 digits | 24,471 | 10 ms | 0.6 µs |
+| Payment card, 16 digits | 12,602 | 4 ms | 1.0 µs |
+| IMEI (15 digits) | 24,466 | 9 ms | 1.8 µs |
+| Canadian SIN (9 digits) | 10,379 | 31 ms | 0.3 µs |
+| GTIN, any length | 23,806 | 18 ms | 1.9 µs |
+| EAN-8 | 3,971 | 5 ms | 0.5 µs |
+| UPC-A | 12,262 | 6 ms | 1.1 µs |
+| EAN-13 | 23,808 | 17 ms | 2.7 µs |
+| ISBN-13 | 23,814 | 15 ms | 1.9 µs |
+| GTIN-14 | 12,262 | 6 ms | 1.5 µs |
+| ABA routing number | 10,022 | 16 ms | 0.7 µs |
+| ISBN-10 | 91,659 | 160 ms | 4.9 µs |
+| ISSN | 16,199 | 12 ms | 2.6 µs |
+| BSN (Dutch elfproef) | 53,594 | 71 ms | 3.2 µs |
+| IBAN, Germany | 59,966 | 54 ms | 13 µs |
+| IBAN, Netherlands | 49,350 | 37 ms | 11 µs |
+| IBAN, United Kingdom | 66,271 | 85 ms | 15 µs |
+| IBAN, France | 107,237 | 100 ms | 25 µs |
 
-The times are V8 in Node 24 on an Apple M4.
+V8 13.6.233.10-node.24 in Node 24.6.0, Apple M4, measured 2026-10-26 (`speed.json`).
+<!-- /table -->
 
 ### Do they hold up in real browsers?
 
@@ -276,27 +307,6 @@ JavaScript's rules) and the check that the result works, with JavaScript off, in
   elimination. Registers should handle Damm and Verhoeff, and might shrink the mod-11 patterns;
   not tried yet.
 
-## Use it
-
-```sh
-python -m rexsum --list                     # the shipped schemes
-python -m rexsum card                       # the pattern
-python -m rexsum card --html                # as an <input> element
-python -m rexsum custom --weights 1,3 --mod 10 --length 13     # your own weighted sum
-python -m rexsum iban DE                    # an IBAN pattern (16 countries built in)
-python -m rexsum iban LU --layout 3n13c     # any other country, layout from the IBAN registry
-python build.py                             # rebuild patterns.json (a few minutes)
-python -m pytest tests                      # check the shipped patterns
-python tests/make_cases.py tests/cases.json && python tests/browser.py patterns.json tests/cases.json
-node tests/speed.mjs patterns.json tests/cases.json speed.json
-/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Helpers/jsc tests/jsc.js -- patterns.json tests/cases.json
-swiftc -O tests/safari.swift -o safari-check && ./safari-check patterns.json tests/cases.json
-```
-
-`patterns.json` holds every pattern with its size and parts. Python 3.10+, no dependencies; the
-browser test needs Playwright (`playwright install chromium firefox webkit`), and the
-JavaScriptCore and Safari tests run on macOS.
-
 ## Files
 
 ```
@@ -306,7 +316,10 @@ rexsum/elim.py       state elimination, greedy orders
 rexsum/pipeline.py   the CRT split, period-first elimination, interval splitting, pattern assembly
 rexsum/registers.py  IBAN: capture groups as registers
 rexsum/specs.py      the shipped schemes;  rexsum/schemes.py  reference checkers and experiments
-build.py             compile and test everything, write patterns.json
-tests/               pytest, the browser and Safari checks with JavaScript off, V8 timings, the JavaScriptCore check
-site/                the demo page
+rexsum/meta.py       labels, formats, samples and keyboards, shared by the CLI, page and examples
+build.py             compile and test everything, write patterns.json (nothing is written on a mismatch)
+tests/               pytest, edge cases, V8, JavaScriptCore, the browser and Safari checks
+site/                the demo page, the standalone examples and their builder, the recording script
+reports/             the native Safari check's latest output
+.github/workflows/   checks on every push; Pages; releases from tags
 ```
