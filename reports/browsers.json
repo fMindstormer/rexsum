@@ -1,0 +1,716 @@
+{
+ "date": "2026-10-26",
+ "machine": "Linux x86_64",
+ "playwright": true,
+ "source": "GitHub Actions, workflow Checks",
+ "engines": {
+  "chromium": {
+   "version": "156.0.8078.4",
+   "patterns": {
+    "luhn": {
+     "strings": 789,
+     "mismatches": [],
+     "first_check_ms": 11.3,
+     "each_check_us": 21.0
+    },
+    "card": {
+     "strings": 793,
+     "mismatches": [],
+     "first_check_ms": 7.1,
+     "each_check_us": 15.5
+    },
+    "card16": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 3.5,
+     "each_check_us": 8.2
+    },
+    "imei": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 7.4,
+     "each_check_us": 13.2
+    },
+    "sin": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 13.4,
+     "each_check_us": 13.2
+    },
+    "gtin": {
+     "strings": 787,
+     "mismatches": [],
+     "first_check_ms": 8.9,
+     "each_check_us": 42.7
+    },
+    "ean8": {
+     "strings": 791,
+     "mismatches": [],
+     "first_check_ms": 3.3,
+     "each_check_us": 8.5
+    },
+    "upca": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 3.7,
+     "each_check_us": 9.9
+    },
+    "ean13": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 9,
+     "each_check_us": 27.7
+    },
+    "isbn13": {
+     "strings": 791,
+     "mismatches": [],
+     "first_check_ms": 9.2,
+     "each_check_us": 25.8
+    },
+    "gtin14": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 3.8,
+     "each_check_us": 10.8
+    },
+    "aba": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 6.3,
+     "each_check_us": 11.1
+    },
+    "isbn10": {
+     "strings": 791,
+     "mismatches": [],
+     "first_check_ms": 295,
+     "each_check_us": 144.8
+    },
+    "issn": {
+     "strings": 792,
+     "mismatches": [],
+     "first_check_ms": 43.7,
+     "each_check_us": 24.4
+    },
+    "bsn": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 25.8,
+     "each_check_us": 37.6
+    },
+    "iban_de": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 33,
+     "each_check_us": 463.3
+    },
+    "iban_nl": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 27.4,
+     "each_check_us": 349.9
+    },
+    "iban_gb": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 37.1,
+     "each_check_us": 492.9
+    },
+    "iban_fr": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 60,
+     "each_check_us": 807.0
+    }
+   },
+   "examples": {
+    "aba": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "bsn": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "card": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "card16": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "ean13": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "ean8": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "gtin": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "gtin14": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "iban_de": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "iban_fr": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "iban_gb": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "iban_nl": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "imei": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "isbn10": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "isbn13": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "issn": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "luhn": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "sin": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "upca": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    }
+   },
+   "empty_without_required_is_valid": true
+  },
+  "firefox": {
+   "version": "157.0",
+   "patterns": {
+    "luhn": {
+     "strings": 789,
+     "mismatches": [],
+     "first_check_ms": 20,
+     "each_check_us": 411.9
+    },
+    "card": {
+     "strings": 793,
+     "mismatches": [],
+     "first_check_ms": 10,
+     "each_check_us": 365.7
+    },
+    "card16": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 5,
+     "each_check_us": 183.5
+    },
+    "imei": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 12,
+     "each_check_us": 362.0
+    },
+    "sin": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 35,
+     "each_check_us": 167.1
+    },
+    "gtin": {
+     "strings": 787,
+     "mismatches": [],
+     "first_check_ms": 13,
+     "each_check_us": 365.9
+    },
+    "ean8": {
+     "strings": 791,
+     "mismatches": [],
+     "first_check_ms": 6,
+     "each_check_us": 61.9
+    },
+    "upca": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 5,
+     "each_check_us": 177.2
+    },
+    "ean13": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 12,
+     "each_check_us": 360.8
+    },
+    "isbn13": {
+     "strings": 791,
+     "mismatches": [],
+     "first_check_ms": 15,
+     "each_check_us": 357.8
+    },
+    "gtin14": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 5,
+     "each_check_us": 181.0
+    },
+    "aba": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 17,
+     "each_check_us": 146.8
+    },
+    "isbn10": {
+     "strings": 791,
+     "mismatches": [],
+     "first_check_ms": 246,
+     "each_check_us": 1126.4
+    },
+    "issn": {
+     "strings": 792,
+     "mismatches": [],
+     "first_check_ms": 68,
+     "each_check_us": 221.0
+    },
+    "bsn": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 39,
+     "each_check_us": 521.5
+    },
+    "iban_de": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 44,
+     "each_check_us": 1062.0
+    },
+    "iban_nl": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 38,
+     "each_check_us": 883.5
+    },
+    "iban_gb": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 54,
+     "each_check_us": 1164.6
+    },
+    "iban_fr": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 83,
+     "each_check_us": 1896.2
+    }
+   },
+   "examples": {
+    "aba": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "bsn": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "card": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "card16": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "ean13": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "ean8": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "gtin": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "gtin14": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "iban_de": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "iban_fr": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "iban_gb": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "iban_nl": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "imei": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "isbn10": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "isbn13": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "issn": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "luhn": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "sin": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "upca": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    }
+   },
+   "empty_without_required_is_valid": true
+  },
+  "webkit": {
+   "version": "27.2",
+   "patterns": {
+    "luhn": {
+     "strings": 789,
+     "mismatches": [],
+     "first_check_ms": 3,
+     "each_check_us": 1424.6
+    },
+    "card": {
+     "strings": 793,
+     "mismatches": [],
+     "first_check_ms": 3,
+     "each_check_us": 1384.6
+    },
+    "card16": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 2,
+     "each_check_us": 773.4
+    },
+    "imei": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 2,
+     "each_check_us": 1372.2
+    },
+    "sin": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 2,
+     "each_check_us": 598.7
+    },
+    "gtin": {
+     "strings": 787,
+     "mismatches": [],
+     "first_check_ms": 4,
+     "each_check_us": 1340.5
+    },
+    "ean8": {
+     "strings": 791,
+     "mismatches": [],
+     "first_check_ms": 0,
+     "each_check_us": 276.9
+    },
+    "upca": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 1,
+     "each_check_us": 724.1
+    },
+    "ean13": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 2,
+     "each_check_us": 1294.9
+    },
+    "isbn13": {
+     "strings": 791,
+     "mismatches": [],
+     "first_check_ms": 2,
+     "each_check_us": 1292.0
+    },
+    "gtin14": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 1,
+     "each_check_us": 740.5
+    },
+    "aba": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 1,
+     "each_check_us": 563.3
+    },
+    "isbn10": {
+     "strings": 791,
+     "mismatches": [],
+     "first_check_ms": 9,
+     "each_check_us": 6084.7
+    },
+    "issn": {
+     "strings": 792,
+     "mismatches": [],
+     "first_check_ms": 6,
+     "each_check_us": 1024.0
+    },
+    "bsn": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 13,
+     "each_check_us": 3251.9
+    },
+    "iban_de": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 9,
+     "each_check_us": 4127.8
+    },
+    "iban_nl": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 7,
+     "each_check_us": 3317.7
+    },
+    "iban_gb": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 9,
+     "each_check_us": 4529.1
+    },
+    "iban_fr": {
+     "strings": 790,
+     "mismatches": [],
+     "first_check_ms": 14,
+     "each_check_us": 7457.0
+    }
+   },
+   "examples": {
+    "aba": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "bsn": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "card": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "card16": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "ean13": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "ean8": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "gtin": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "gtin14": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "iban_de": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "iban_fr": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "iban_gb": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "iban_nl": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "imei": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "isbn10": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "isbn13": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "issn": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "luhn": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "sin": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "upca": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    }
+   },
+   "empty_without_required_is_valid": true
+  }
+ }
+}

@@ -200,43 +200,61 @@ which is stricter than older JavaScript about what may appear inside a character
 <!-- table -->
 | Scheme | Characters | V8 compile | Median match |
 |---|---:|---:|---:|
-| Luhn, any length | 24,465 | 10 ms | 0.9 µs |
-| Payment card, 12–19 digits | 24,471 | 10 ms | 0.6 µs |
-| Payment card, 16 digits | 12,602 | 4 ms | 1.0 µs |
-| IMEI (15 digits) | 24,466 | 9 ms | 1.8 µs |
-| Canadian SIN (9 digits) | 10,379 | 31 ms | 0.3 µs |
-| GTIN, any length | 23,806 | 18 ms | 1.9 µs |
-| EAN-8 | 3,971 | 5 ms | 0.5 µs |
-| UPC-A | 12,262 | 6 ms | 1.1 µs |
-| EAN-13 | 23,808 | 17 ms | 2.7 µs |
-| ISBN-13 | 23,814 | 15 ms | 1.9 µs |
-| GTIN-14 | 12,262 | 6 ms | 1.5 µs |
-| ABA routing number | 10,022 | 16 ms | 0.7 µs |
-| ISBN-10 | 91,659 | 160 ms | 4.9 µs |
-| ISSN | 16,199 | 12 ms | 2.6 µs |
-| BSN (Dutch elfproef) | 53,594 | 71 ms | 3.2 µs |
-| IBAN, Germany | 59,966 | 54 ms | 13 µs |
-| IBAN, Netherlands | 49,350 | 37 ms | 11 µs |
-| IBAN, United Kingdom | 66,271 | 85 ms | 15 µs |
-| IBAN, France | 107,237 | 100 ms | 25 µs |
+| Luhn, any length | 24,465 | 8 ms | 0.7 µs |
+| Payment card, 12–19 digits | 24,471 | 8 ms | 0.5 µs |
+| Payment card, 16 digits | 12,602 | 3 ms | 0.8 µs |
+| IMEI (15 digits) | 24,466 | 8 ms | 1.4 µs |
+| Canadian SIN (9 digits) | 10,379 | 29 ms | 0.3 µs |
+| GTIN, any length | 23,806 | 14 ms | 1.6 µs |
+| EAN-8 | 3,971 | 5 ms | 0.4 µs |
+| UPC-A | 12,262 | 5 ms | 0.9 µs |
+| EAN-13 | 23,808 | 13 ms | 2.3 µs |
+| ISBN-13 | 23,814 | 14 ms | 1.5 µs |
+| GTIN-14 | 12,262 | 5 ms | 1.3 µs |
+| ABA routing number | 10,022 | 13 ms | 0.5 µs |
+| ISBN-10 | 91,659 | 136 ms | 4.5 µs |
+| ISSN | 16,199 | 11 ms | 2.5 µs |
+| BSN (Dutch elfproef) | 53,594 | 60 ms | 2.9 µs |
+| IBAN, Germany | 59,966 | 44 ms | 11 µs |
+| IBAN, Netherlands | 49,350 | 33 ms | 9.0 µs |
+| IBAN, United Kingdom | 66,271 | 54 ms | 13 µs |
+| IBAN, France | 107,237 | 97 ms | 25 µs |
 
 V8 13.6.233.10-node.24 in Node 24.6.0, Apple M4, measured 2026-10-26 (`speed.json`).
 <!-- /table -->
 
 ### Do they hold up in real browsers?
 
-**Correctness.** Every pattern agrees with a reference implementation on 23,000 to 27,000 test
-strings in Python, and on 780 more in V8 and in JavaScriptCore (`tests/speed.mjs`,
-`tests/jsc.js`). The same 780 were entered into a real `<input>` with JavaScript disabled in
-Chromium 156 and WebKit 27.2 (`tests/browser.py`), and in Safari 27's own engine on macOS
-(`tests/safari.swift`). The `pattern` attribute alone gets every one right. Firefox is not tested
-yet.
+**Correctness.** Every pattern agrees with a reference implementation on 23,000 to 27,000 random
+test strings in Python. About 790 more per pattern (`tests/cases.json`) include deliberate edge
+cases (`tests/boundary.py`): swaps of neighbours that a check digit cannot catch, wrong lengths,
+spaces, fullwidth and Arabic-Indic digits, a final `X`, IBANs in lowercase or printed with spaces.
+Each edge case's expected answer is written down, and must also agree with the reference
+checker. These strings are checked in six places, and every one gets every string right:
+
+| Where | Version | How |
+|---|---|---|
+| V8 | 13.6 (Node 24.6) | `tests/speed.mjs`, the regex compiled with the `v` flag |
+| JavaScriptCore | macOS 27.0.1 | `tests/jsc.js`, the same in Safari's regex engine |
+| Chromium (Playwright) | 156.0.8078.4 | `tests/browser.py`: entered into a real `<input>` with JavaScript off |
+| Firefox (Playwright) | 157.0 | the same |
+| WebKit (Playwright) | 27.2 | the same, in Playwright's own WebKit build |
+| Safari | 27.0.1 | `tests/safari.swift`: the WebKit that ships with macOS, page scripts off |
+
+The three Playwright browsers also open each standalone example from disk with JavaScript off:
+the valid sample passes, the invalid one fails, the empty required field fails, and an empty field
+without `required` passes, because browsers never test an empty value against the pattern. All
+of this runs on every push (`.github/workflows/checks.yml`; latest results in
+`reports/browsers.json`), the native Safari check on a Mac (`reports/safari.txt`).
 
 **Speed.** The first keystroke in a field compiles its pattern. In Chromium that takes 2 to 62 ms
-(189 ms for ISBN-10), and every later keystroke a few microseconds. Safari compiles the pattern
-again at every keystroke, but quickly: 0.1 to 2.8 ms, growing with the pattern's length. Regex
-engines that backtrack can blow up on unlucky input, but these patterns stay linear: 1,000-digit
-inputs take about 2 ms at most.
+on an Apple M4 (189 ms for ISBN-10), and every later keystroke a few microseconds. Safari compiles
+the pattern again at every keystroke, but quickly: 0.1 to 4.7 ms, growing with the pattern's length
+(`reports/safari.txt`). On GitHub's Linux runners, Firefox's first check takes 5 to 246 ms and
+later ones 0.06 to 1.9 ms. Backtracking regex engines can take exponential time on unlucky inputs.
+Here the slowest of 20 random 1,000-digit inputs took under 1 ms (for Luhn and GTIN, the patterns
+that accept any length; the others reject such lengths at once). That is a measurement on random
+inputs, not a worst-case guarantee.
 
 **Size on the wire.** Servers compress HTML, and the patterns compress well, 8 to 45 times:
 Luhn's 24,465 characters gzip to 542 bytes and the German IBAN's 59,966 to 6.6 kB. GitHub Pages
