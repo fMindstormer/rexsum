@@ -227,11 +227,11 @@ footer { color: var(--ink-3); font-size: 0.88rem; border-top: 1px solid var(--ru
 
   <section class="stack" aria-labelledby="iban">
     <h2 id="iban">IBAN: too big for a pure regex</h2>
-    <p>IBANs are checked mod 97. That is prime, so nothing splits, and the constructions above grow like n<sup>7.6</sup> in the number of digits: a German IBAN would need about 10<sup>8</sup> characters. But a JavaScript regex has more syntax than a textbook regular expression. A group captured inside a lookahead keeps its value, and a backreference can test it later, so a group can serve as a register: capturing the first v characters stores the number v. Uezato used the same device in 2024 to prove exactly what such regexes can recognize (see below).</p>
+    <p>IBANs are checked mod 97. That is prime, so nothing splits, and the constructions above grow like n<sup>7.6</sup> in the number of digits, and a German IBAN would need over 10<sup>8</sup> characters. No pure regex does much better: counting shows that every one needs at least 55 million. But a JavaScript regex has more syntax than a textbook regular expression. A group captured inside a lookahead keeps its value, and a backreference can test it later, so a group can serve as a register: capturing the first v characters stores the number v. Uezato used the same device in 2024 to prove exactly what such regexes can recognize (see below).</p>
     <pre class="rx">(?=(...))          stores 3: the group captures the first 3 characters
 (?=\5(?&lt;=^...))    tests whether group 5 holds 3</pre>
     <p>Each IBAN pattern is a row of such lookaheads. Each step reads one character and writes the new remainder into fresh groups, the way you would compute it on paper. The remainder is held as two small numbers, a ≤ 13 and b ≤ 9, standing for 10a + b and never reduced: since 100 leaves 3 mod 97, a digit d turns (a, b) into (b + ⌊(3a + d) / 10⌋, (3a + d) mod 10). A letter counts as two digits. The German pattern has 59,966 characters and 69 groups, and the size grows linearly with the length.</p>
-    <p>Backreferences make the syntax more expressive than regular expressions, but these patterns do not need that power: each covers one country, so its strings have one fixed length, and the language is finite and therefore regular. What the backreferences buy is size. A computed remainder is stored once and reused, where a pure regex has to spell out every path to it: 59,966 characters for Germany instead of about 10<sup>8</sup>.</p>
+    <p>Backreferences make the syntax more expressive than regular expressions, but these patterns do not need that power: each covers one country, so its strings have one fixed length, and the language is finite and therefore regular. What the backreferences buy is size. A computed remainder is stored once and reused, where a pure regex has to spell out every path to it: 59,966 characters for Germany instead of at least 55 million.</p>
   </section>
 
   <section class="stack" aria-labelledby="all">
@@ -288,7 +288,7 @@ footer { color: var(--ink-3); font-size: 0.88rem; border-top: 1px solid var(--ru
     <h2 id="limits">Limits</h2>
     <p>A prime modulus cannot be split, and the size grows fast with it. Digits whose sum is a multiple of 5 already need stars nested five deep (McNaughton's theorem on star height), and the constructions here grow like 4<sup>q−1</sup> for modulus q.</p>
     <div class="limits">
-      <div class="limit"><b>Mod 97 as a pure regex</b><p>Eight-digit multiples of 97 already need 100,133 characters, and a German IBAN would need about 10<sup>8</sup>. The IBAN patterns here use capture groups instead, and accept only the electronic form: capitals, no spaces.</p></div>
+      <div class="limit"><b>Mod 97 as a pure regex</b><p>Eight-digit multiples of 97 already need 100,133 characters, and any pure regex for a German IBAN needs at least 55 million (the README has the proof). The IBAN patterns here use capture groups instead, and accept only the electronic form: capitals, no spaces.</p></div>
       <div class="limit"><b>Damm check digit</b><p>Its table is a quasigroup, not a group, so nothing splits. The direct conversion gives 1,398,101 characters. Capture registers should handle it as they handle IBAN; not tried yet.</p></div>
       <div class="limit"><b>ISBN-10 is the largest pure regex</b><p>Mod 11 is prime, so its pattern is one piece of 91,659 characters. The first keystroke compiles it: about 0.2 seconds in Chromium.</p></div>
     </div>

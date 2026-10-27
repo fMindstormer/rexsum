@@ -139,8 +139,8 @@ merge.
 ### 4. For IBAN, turn capture groups into registers
 
 IBANs are checked modulo 97. 97 is prime, so step 1 has nothing to split, and every digit adds a
-different residue, so nothing merges either. A pure regex for a German IBAN would need about
-10<sup>8</sup> characters (see Limits).
+different residue, so nothing merges either. A pure regex for a German IBAN needs at least
+55 million characters, and that is a proof, not an estimate (see How small can a pure regex be).
 
 The language itself is not the obstacle; the size is. So the IBAN patterns use the other half of
 the instruction set, capture groups, to say the same thing far more compactly. Three properties of JavaScript make a group usable as a register:
@@ -186,7 +186,7 @@ general, a pattern that uses them can describe languages no finite automaton acc
 patterns do not. Each covers one country, so its strings have one fixed length, and the language
 is finite and therefore regular. What the backreferences buy is size: a computed remainder is
 stored once and reused, where a pure regex has to spell out every path to it. For Germany that is
-59,966 characters instead of about 10<sup>8</sup>.
+59,966 characters instead of at least 55 million.
 
 ### Keeping the output small
 
@@ -260,6 +260,66 @@ inputs, not a worst-case guarantee.
 Luhn's 24,465 characters gzip to 542 bytes and the German IBAN's 59,966 to 6.6 kB. GitHub Pages
 sends the demo page, 360 kB with eleven fields, as 30 kB.
 
+## How small can a pure regex be?
+
+Here a pure regex is union, concatenation, star and character classes: no counted repeats, no
+lookarounds, no backreferences. Its size is the number of symbols it contains, and since every
+symbol takes at least one character, a lower bound on symbols is a lower bound on length.
+For mod 97 on a fixed length, the answer turns out to be pinned down to within a factor of about
+two, by an argument short enough to give here (`rexsum/bounds.py`).
+
+**Every piece is stuck to one residue.** With one fixed length, every subexpression always
+matches the same number of characters at the same place, say positions 4 to 11. Whatever is
+concatenated around it can be combined with anything it matches, and every result must be
+valid. So all the strings it matches add the same residue mod 97 to the sum. A character class
+is no use either: two different digits at one position always add different residues.
+
+**A concatenation is a rectangle.** If the left part matches A strings and the right part B, the
+concatenation matches A × B. Both sit inside residue classes, and a class on positions 4 to 11
+holds about 1/97 of the 10<sup>8</sup> strings there; the A × B strings, built from one class on
+each side, can fill at most about 1/97 of the class they land in. Give every subexpression a score:
+the fraction of its residue class it matches, times a weight for its interval. A single digit
+scores 1. A union scores at most the sum of its parts. A concatenation scores at most the sum of
+its parts too, provided the weight of an interval is at most about 97 times the weights of its
+two halves. So set each weight to exactly that, minimised over every way of splitting, and
+induction shows that a regex has at least as many symbols as its score. A regex for the whole
+language matches the whole class, so its score is the weight of the full interval.
+
+That recursion is the interval construction's own (step 3), except that the construction pays
+for all 97 pairings of residues where the bound charges the cheapest. When the classes are equal
+in size, which holds from three digits up, the two agree; the gap comes from intervals of one or
+two digits, whose classes hold 0, 1 or 2 strings.
+
+| Language | Lower bound (symbols) | Interval construction (symbols) |
+|---|---:|---:|
+| 4-digit multiples of 97 | 208 | 318 |
+| 6-digit multiples of 97 | 4,687 | 5,940 |
+| 8-digit multiples of 97 | 39,652 | 61,340 |
+| German IBAN (20 free digits) | 55,537,202 | 116,317,552 |
+
+The construction's 116 million symbols come to about 176 million characters once the `|` and
+`(?:` `)` are added; the shipped mod-97 patterns of 4, 6 and 8 digits are 524, 9,653 and
+100,133 characters. `python -m rexsum.bounds` prints the same for other countries whose account
+numbers are all digits: at least 2.5 million symbols for Norway, up to at least 490 million for
+Poland.
+
+Exhaustive search on tiny cases (moduli 3, 5 and 7, up to six positions, `tests/test_bounds.py`)
+confirms that the bound never exceeds the true minimum, and shows that the construction is not
+always optimal: for six-bit multiples of 7 the best regex has 42 symbols, the construction 44.
+
+**Why not communication complexity?** That was the tool this README used to point to. Fooling
+sets, which bound automata, give 1,671 here: an automaton can reuse a state, a regex cannot
+reuse a subexpression. Gruber and Johannsen's Karchmer–Wigderson argument gives n<sup>Ω(log n)</sup>,
+but with a constant of 1/75 in the exponent (1/192 after a correction by Cseresnyes and Seiwert),
+which at this size gives 3 at most. The
+counting above is closer to Cseresnyes and Seiwert's method (see below), sharpened so that it
+gives numbers rather than an order of growth.
+
+Two gaps remain. The bound says nothing about counted repeats such as `{4}`, which can reuse a
+subexpression at consecutive positions; that should not help here, but it is not proven. And
+IBANs with letters (UK, Netherlands, France) are not covered: a letter counts as two digits, which
+shifts the weight of every position after it.
+
 ## Where this sits
 
 **Practice.** Validation guides say a regex can check a card number's format and pair it with
@@ -291,6 +351,15 @@ Sakarovitch 2004; Moreira, Nabais and Reis 2010). Steps 1 to 3 above are structu
 alternatives to those general heuristics, and on Luhn the period-first order comes out at about
 half the size of the best greedy rule.
 
+**Lower bounds.** E. Cseresnyes and H. Seiwert, *Regular Expression Length via Arithmetic
+Formula Complexity* (DCFS 2020, [arXiv:2012.15617](https://arxiv.org/abs/2012.15617)), prove
+that n-bit binary multiples of an odd p need regexes of length p<sup>Θ(log n)</sup>, up to
+polynomial factors, answering the fixed-length form of a question of Ellul, Krawetz, Shallit and
+Wang. Their counting
+argument settles the growth rate; carried over to base 10 at 20 digits and p = 97, though, the
+losses in its constants leave a bound of about 20. The bound above is a sharper form of the same
+idea that stays within a factor of 2.1 of the construction at real sizes.
+
 **Registers in regexes.** Y. Uezato, *Regular Expressions with Backreferences and Lookaheads
 Capture NLOG* (ICALP 2024, [arXiv:2404.17492](https://arxiv.org/abs/2404.17492)), stores numbers
 as the lengths of captured strings and compares them with backreferences inside lookaheads, the
@@ -303,7 +372,8 @@ around mod 97 and around how V8 compiles patterns.
 verifies a check digit (GTIN, ISBN, ABA, elfproef, IBAN), and none small enough for a `pattern`
 attribute. The new parts are the constructions that get there (the lookahead CRT split,
 period-first elimination, interval splitting, and a practical mod-97 register machine within
-JavaScript's rules) and the check that the result works, with JavaScript off, in real browsers.
+JavaScript's rules), the check that the result works, with JavaScript off, in real browsers, and
+the lower bound for pure regexes in the form given above, which I have not seen published.
 
 ## Limits and open questions
 
@@ -311,13 +381,11 @@ JavaScript's rules) and the check that the result works, with JavaScript off, in
   stars nested five deep (McNaughton: for bideterministic languages, star height equals the cycle
   rank of the minimal automaton, here a complete graph on 5 states). The constructions here grow
   like 4^(q−1) for modulus q.
-- **How small can a pure-regex IBAN be?** Multiples of 97 with 4, 6 and 8 digits need 524, 9,653
-  and 100,133 characters. Each country fixes the length, so interval splitting grows only
-  polynomially: halving the length divides the size by about 2 × 97, so it grows like n^7.6. That
-  still puts a German IBAN (20 free digits) near 10^8 characters. Whether this is close to optimal
-  is open. For plain regexes, communication-complexity lower bounds (Gruber and Johannsen, FoSSaCS
-  2008) look like the tool; with lookaheads, which express AND, OR and NOT, it becomes a question
-  of Boolean formula size. The registers of step 4 sidestep the question.
+- **A pure-regex IBAN is out of reach, provably.** A German one needs at least 55 million
+  symbols, and the best construction here uses 116 million (see How small can a pure regex be).
+  Still open: whether counted repeats or lookaheads, which express AND, OR and NOT, could do much
+  better; with lookaheads it becomes a question of Boolean formula size. The registers of step 4
+  sidestep the question.
 - **IBAN patterns take the electronic form only:** capitals, no spaces. Each covers one country;
   `python -m rexsum iban CC` makes the others, with `--layout` from the IBAN registry for
   countries that are not built in.
@@ -335,6 +403,7 @@ rexsum/pipeline.py   the CRT split, period-first elimination, interval splitting
 rexsum/registers.py  IBAN: capture groups as registers
 rexsum/specs.py      the shipped schemes;  rexsum/schemes.py  reference checkers and experiments
 rexsum/meta.py       labels, formats, samples and keyboards, shared by the CLI, page and examples
+rexsum/bounds.py     how small a pure regex can be: the lower bound and an exhaustive check
 build.py             compile and test everything, write patterns.json (nothing is written on a mismatch)
 tests/               pytest, edge cases, V8, JavaScriptCore, the browser and Safari checks
 site/                the demo page, the standalone examples and their builder, the recording script
