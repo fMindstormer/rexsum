@@ -2,6 +2,7 @@
 the README quotes."""
 import math
 import sys
+from fractions import Fraction
 from pathlib import Path
 
 import pytest
@@ -18,7 +19,7 @@ def test_lower_bound_holds(weights, p, base):
     for t in range(p):
         lo, up, _ = bounds([digit(w, p, base) for w in weights], p, t)
         best = exact(list(weights), p, base, t)
-        assert lo <= best + 1e-9 and best <= up
+        assert lo <= best <= up
 
 
 def test_construction_is_not_always_optimal():
@@ -28,6 +29,7 @@ def test_construction_is_not_always_optimal():
 
 
 def test_quoted_figures():
-    assert [math.ceil(multiples(k)[0] - 1e-9) for k in (4, 6, 8)] == [208, 4687, 39652]
+    assert [multiples(k)[0] for k in (4, 6, 8)] == [208, Fraction(51550, 11), Fraction(515464, 13)]
     lo, up, _ = iban("DE", 18)
-    assert math.ceil(lo) == 55_537_202 and up == 116_317_552
+    assert lo == Fraction(11168428237247836984769, 201098145295168) and up == 116_317_552
+    assert math.ceil(lo) == 55_537_202

@@ -286,9 +286,14 @@ induction shows that a regex has at least as many symbols as its score. A regex 
 language matches the whole class, so its score is the weight of the full interval.
 
 That recursion is the interval construction's own (step 3), except that the construction pays
-for all 97 pairings of residues where the bound charges the cheapest. When the classes are equal
-in size, which holds from three digits up, the two agree; the gap comes from intervals of one or
-two digits, whose classes hold 0, 1 or 2 strings.
+for all 97 pairings of residues where the bound charges the cheapest. The two would agree if
+the classes were equal in size. They never are exactly, since 97 divides no power of 10, but from
+three digits up they are close: 10 or 11 strings each for three digits, 103 or 104 for four. Most
+of the gap comes from intervals of one or two digits, whose classes hold 0, 1 or 2 strings.
+
+The bound is computed in exact rational arithmetic, so the figures below are exact values
+rounded up to whole symbols. For Germany it is 11168428237247836984769 / 201098145295168
+= 55,537,201.6…
 
 | Language | Lower bound (symbols) | Interval construction (symbols) |
 |---|---:|---:|

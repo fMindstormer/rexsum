@@ -12,6 +12,7 @@ N(I, rho). Then Phi(E) = g(I, rho) |L(E)| / N(I, rho) is at most the size of E w
     g(I, rho) = N(I, rho) * min over splits I = I1 I2 and a of (g(I1, a) + g(I2, rho - a)) / (N(I1, a) N(I2, rho - a))
 and g = 1 on single positions: a symbol has Phi = 1, union adds at most the sum, and a
 concatenation is a rectangle, which inside a class covers at most N1 N2 of its N strings.
+The arithmetic is exact (integers and Fractions), so the bound returned is the exact value.
 
 Upper bound. The interval construction of pipeline.layered_dp, counted in symbols, with the
 best split chosen per interval and residue:
@@ -22,6 +23,7 @@ from __future__ import annotations
 
 import itertools
 import math
+from fractions import Fraction
 
 
 def bounds(positions, p, target):
@@ -30,7 +32,7 @@ def bounds(positions, p, target):
     n = len(positions)
     N, g, U = {}, {}, {}
     for i, d in enumerate(positions):
-        N[i, i + 1], g[i, i + 1], U[i, i + 1] = dict(d), {r: 1.0 for r in d}, {r: 1 for r in d}
+        N[i, i + 1], g[i, i + 1], U[i, i + 1] = dict(d), {r: Fraction(1) for r in d}, {r: 1 for r in d}
     for ln in range(2, n + 1):
         for a in range(n - ln + 1):
             b = a + ln
@@ -43,7 +45,9 @@ def bounds(positions, p, target):
                         r = (r1 + r2) % p
                         if m == a + 1:
                             cnt[r] = cnt.get(r, 0) + c1 * c2
-                        lo[r] = min(lo.get(r, math.inf), (g1[r1] + g2[r2]) / (c1 * c2))
+                        v = (g1[r1] + g2[r2]) / (c1 * c2)
+                        if r not in lo or v < lo[r]:
+                            lo[r] = v
                         tot[r] = tot.get(r, 0) + U1[r1] + U2[r2]
                 for r, v in tot.items():
                     up[r] = min(up.get(r, math.inf), v)
@@ -129,7 +133,7 @@ if __name__ == "__main__":
     print("size in symbols   lower bound   construction")
     for k in (4, 6, 8):
         lo, up, _ = multiples(k)
-        print(f"{k}-digit multiples of 97   {math.ceil(lo - 1e-9):12,}   {up:12,}")
+        print(f"{k}-digit multiples of 97   {math.ceil(lo):12,}   {up:12,}")
     for cc, n in [("NO", 11), ("BE", 12), ("DK", 14), ("FI", 14), ("AT", 16), ("DE", 18),
                   ("ES", 20), ("SE", 20), ("PT", 21), ("PL", 24)]:
         lo, up, _ = iban(cc, n)
