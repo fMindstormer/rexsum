@@ -1,5 +1,5 @@
 {
- "date": "2026-10-26",
+ "date": "2026-10-30",
  "machine": "Linux x86_64",
  "playwright": true,
  "source": "GitHub Actions, workflow Checks",
@@ -10,116 +10,122 @@
     "luhn": {
      "strings": 789,
      "mismatches": [],
-     "first_check_ms": 11.3,
-     "each_check_us": 21.0
+     "first_check_ms": 12.4,
+     "each_check_us": 23.3
     },
     "card": {
      "strings": 793,
      "mismatches": [],
-     "first_check_ms": 7.1,
-     "each_check_us": 15.5
+     "first_check_ms": 8.2,
+     "each_check_us": 17.2
     },
     "card16": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 3.5,
-     "each_check_us": 8.2
+     "first_check_ms": 4.1,
+     "each_check_us": 9.1
     },
     "imei": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 7.4,
-     "each_check_us": 13.2
+     "first_check_ms": 12.3,
+     "each_check_us": 15.1
     },
     "sin": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 13.4,
-     "each_check_us": 13.2
+     "first_check_ms": 16.2,
+     "each_check_us": 16.7
     },
     "gtin": {
      "strings": 787,
      "mismatches": [],
-     "first_check_ms": 8.9,
-     "each_check_us": 42.7
+     "first_check_ms": 10.6,
+     "each_check_us": 46.5
     },
     "ean8": {
      "strings": 791,
      "mismatches": [],
-     "first_check_ms": 3.3,
-     "each_check_us": 8.5
+     "first_check_ms": 2.3,
+     "each_check_us": 5.7
     },
     "upca": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 3.7,
-     "each_check_us": 9.9
+     "first_check_ms": 4,
+     "each_check_us": 10.3
     },
     "ean13": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 9,
-     "each_check_us": 27.7
+     "first_check_ms": 10,
+     "each_check_us": 30.9
     },
     "isbn13": {
      "strings": 791,
      "mismatches": [],
-     "first_check_ms": 9.2,
-     "each_check_us": 25.8
+     "first_check_ms": 10,
+     "each_check_us": 27.7
     },
     "gtin14": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 3.8,
-     "each_check_us": 10.8
+     "first_check_ms": 4,
+     "each_check_us": 11.0
     },
     "aba": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 6.3,
-     "each_check_us": 11.1
+     "first_check_ms": 6.7,
+     "each_check_us": 12.2
     },
     "isbn10": {
      "strings": 791,
      "mismatches": [],
-     "first_check_ms": 295,
-     "each_check_us": 144.8
+     "first_check_ms": 301.5,
+     "each_check_us": 150.2
     },
     "issn": {
      "strings": 792,
      "mismatches": [],
-     "first_check_ms": 43.7,
-     "each_check_us": 24.4
+     "first_check_ms": 48.3,
+     "each_check_us": 27.3
     },
     "bsn": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 25.8,
-     "each_check_us": 37.6
+     "first_check_ms": 29.1,
+     "each_check_us": 42.5
     },
     "iban_de": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 33,
-     "each_check_us": 463.3
+     "first_check_ms": 39,
+     "each_check_us": 545.6
     },
     "iban_nl": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 27.4,
-     "each_check_us": 349.9
+     "first_check_ms": 30.6,
+     "each_check_us": 405.4
     },
     "iban_gb": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 37.1,
-     "each_check_us": 492.9
+     "first_check_ms": 44.2,
+     "each_check_us": 566.6
     },
     "iban_fr": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 60,
-     "each_check_us": 807.0
+     "first_check_ms": 71.2,
+     "each_check_us": 952.2
+    },
+    "lei": {
+     "strings": 794,
+     "mismatches": [],
+     "first_check_ms": 50.6,
+     "each_check_us": 680.1
     }
    },
    "examples": {
@@ -214,6 +220,12 @@
      "valid_again": true
     },
     "issn": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "lei": {
      "valid_sample": true,
      "invalid_sample_rejected": true,
      "empty_rejected": true,
@@ -246,32 +258,32 @@
     "luhn": {
      "strings": 789,
      "mismatches": [],
-     "first_check_ms": 20,
-     "each_check_us": 411.9
+     "first_check_ms": 18,
+     "each_check_us": 401.8
     },
     "card": {
      "strings": 793,
      "mismatches": [],
-     "first_check_ms": 10,
-     "each_check_us": 365.7
+     "first_check_ms": 13,
+     "each_check_us": 369.5
     },
     "card16": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 5,
+     "first_check_ms": 6,
      "each_check_us": 183.5
     },
     "imei": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 12,
-     "each_check_us": 362.0
+     "first_check_ms": 13,
+     "each_check_us": 359.5
     },
     "sin": {
      "strings": 790,
      "mismatches": [],
      "first_check_ms": 35,
-     "each_check_us": 167.1
+     "each_check_us": 168.4
     },
     "gtin": {
      "strings": 787,
@@ -283,79 +295,85 @@
      "strings": 791,
      "mismatches": [],
      "first_check_ms": 6,
-     "each_check_us": 61.9
+     "each_check_us": 60.7
     },
     "upca": {
      "strings": 790,
      "mismatches": [],
      "first_check_ms": 5,
-     "each_check_us": 177.2
+     "each_check_us": 181.0
     },
     "ean13": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 12,
-     "each_check_us": 360.8
+     "first_check_ms": 13,
+     "each_check_us": 354.4
     },
     "isbn13": {
      "strings": 791,
      "mismatches": [],
-     "first_check_ms": 15,
-     "each_check_us": 357.8
+     "first_check_ms": 12,
+     "each_check_us": 351.5
     },
     "gtin14": {
      "strings": 790,
      "mismatches": [],
      "first_check_ms": 5,
-     "each_check_us": 181.0
+     "each_check_us": 177.2
     },
     "aba": {
      "strings": 790,
      "mismatches": [],
      "first_check_ms": 17,
-     "each_check_us": 146.8
+     "each_check_us": 149.4
     },
     "isbn10": {
      "strings": 791,
      "mismatches": [],
-     "first_check_ms": 246,
-     "each_check_us": 1126.4
+     "first_check_ms": 252,
+     "each_check_us": 1135.3
     },
     "issn": {
      "strings": 792,
      "mismatches": [],
-     "first_check_ms": 68,
-     "each_check_us": 221.0
+     "first_check_ms": 73,
+     "each_check_us": 226.0
     },
     "bsn": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 39,
-     "each_check_us": 521.5
+     "first_check_ms": 41,
+     "each_check_us": 530.4
     },
     "iban_de": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 44,
-     "each_check_us": 1062.0
+     "first_check_ms": 42,
+     "each_check_us": 1207.6
     },
     "iban_nl": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 38,
-     "each_check_us": 883.5
+     "first_check_ms": 42,
+     "each_check_us": 963.3
     },
     "iban_gb": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 54,
-     "each_check_us": 1164.6
+     "first_check_ms": 56,
+     "each_check_us": 1340.5
     },
     "iban_fr": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 83,
-     "each_check_us": 1896.2
+     "first_check_ms": 99,
+     "each_check_us": 2136.7
+    },
+    "lei": {
+     "strings": 794,
+     "mismatches": [],
+     "first_check_ms": 70,
+     "each_check_us": 1715.4
     }
    },
    "examples": {
@@ -450,6 +468,12 @@
      "valid_again": true
     },
     "issn": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "lei": {
      "valid_sample": true,
      "invalid_sample_rejected": true,
      "empty_rejected": true,
@@ -482,116 +506,122 @@
     "luhn": {
      "strings": 789,
      "mismatches": [],
-     "first_check_ms": 3,
-     "each_check_us": 1424.6
+     "first_check_ms": 6,
+     "each_check_us": 1092.5
     },
     "card": {
      "strings": 793,
      "mismatches": [],
-     "first_check_ms": 3,
-     "each_check_us": 1384.6
+     "first_check_ms": 4,
+     "each_check_us": 1042.9
     },
     "card16": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 2,
-     "each_check_us": 773.4
+     "first_check_ms": 1,
+     "each_check_us": 577.2
     },
     "imei": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 2,
-     "each_check_us": 1372.2
+     "first_check_ms": 3,
+     "each_check_us": 1032.9
     },
     "sin": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 2,
-     "each_check_us": 598.7
+     "first_check_ms": 1,
+     "each_check_us": 443.0
     },
     "gtin": {
      "strings": 787,
      "mismatches": [],
-     "first_check_ms": 4,
-     "each_check_us": 1340.5
+     "first_check_ms": 2,
+     "each_check_us": 1011.4
     },
     "ean8": {
      "strings": 791,
      "mismatches": [],
-     "first_check_ms": 0,
-     "each_check_us": 276.9
+     "first_check_ms": 1,
+     "each_check_us": 202.3
     },
     "upca": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 1,
-     "each_check_us": 724.1
+     "first_check_ms": 2,
+     "each_check_us": 539.2
     },
     "ean13": {
      "strings": 790,
      "mismatches": [],
      "first_check_ms": 2,
-     "each_check_us": 1294.9
+     "each_check_us": 977.2
     },
     "isbn13": {
      "strings": 791,
      "mismatches": [],
      "first_check_ms": 2,
-     "each_check_us": 1292.0
+     "each_check_us": 984.8
     },
     "gtin14": {
      "strings": 790,
      "mismatches": [],
      "first_check_ms": 1,
-     "each_check_us": 740.5
+     "each_check_us": 550.6
     },
     "aba": {
      "strings": 790,
      "mismatches": [],
      "first_check_ms": 1,
-     "each_check_us": 563.3
+     "each_check_us": 424.1
     },
     "isbn10": {
      "strings": 791,
      "mismatches": [],
-     "first_check_ms": 9,
-     "each_check_us": 6084.7
+     "first_check_ms": 20,
+     "each_check_us": 4668.8
     },
     "issn": {
      "strings": 792,
      "mismatches": [],
-     "first_check_ms": 6,
-     "each_check_us": 1024.0
+     "first_check_ms": 4,
+     "each_check_us": 747.5
     },
     "bsn": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 13,
-     "each_check_us": 3251.9
+     "first_check_ms": 11,
+     "each_check_us": 2411.4
     },
     "iban_de": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 9,
-     "each_check_us": 4127.8
+     "first_check_ms": 10,
+     "each_check_us": 3153.2
     },
     "iban_nl": {
      "strings": 790,
      "mismatches": [],
      "first_check_ms": 7,
-     "each_check_us": 3317.7
+     "each_check_us": 2508.9
     },
     "iban_gb": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 9,
-     "each_check_us": 4529.1
+     "first_check_ms": 10,
+     "each_check_us": 3507.6
     },
     "iban_fr": {
      "strings": 790,
      "mismatches": [],
      "first_check_ms": 14,
-     "each_check_us": 7457.0
+     "each_check_us": 6089.9
+    },
+    "lei": {
+     "strings": 794,
+     "mismatches": [],
+     "first_check_ms": 11,
+     "each_check_us": 4534.0
     }
    },
    "examples": {
@@ -686,6 +716,12 @@
      "valid_again": true
     },
     "issn": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "lei": {
      "valid_sample": true,
      "invalid_sample_rejected": true,
      "empty_rejected": true,

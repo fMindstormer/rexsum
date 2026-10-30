@@ -260,11 +260,11 @@ without `required` passes, because browsers never test an empty value against th
 of this runs on every push (`.github/workflows/checks.yml`; latest results in
 `reports/browsers.json`), the native Safari check on a Mac (`reports/safari.txt`).
 
-**Speed.** The first keystroke in a field compiles its pattern. In Chromium that takes 2 to 62 ms
-on an Apple M4 (189 ms for ISBN-10), and every later keystroke a few microseconds. Safari compiles
-the pattern again at every keystroke, but quickly: 0.1 to 2.9 ms, growing with the pattern's length
-(`reports/safari.txt`). On GitHub's Linux runners, Firefox's first check takes 5 to 246 ms and
-later ones 0.06 to 1.9 ms. Backtracking regex engines can take exponential time on unlucky inputs.
+**Speed.** The first keystroke in a field compiles its pattern. On GitHub's Linux runners
+(`reports/browsers.json`), that first check takes 2 to 71 ms in Chromium (302 ms for ISBN-10)
+and 5 to 99 ms in Firefox (252 ms for ISBN-10); later checks take 0.006 to 0.95 ms in Chromium
+and 0.06 to 2.1 ms in Firefox, growing with the pattern's length. Safari compiles the pattern
+again at every keystroke, but quickly: 0.1 to 2.9 ms on an Apple M4 (`reports/safari.txt`). Backtracking regex engines can take exponential time on unlucky inputs.
 Here the slowest of 20 random 1,000-digit inputs took under 1 ms (for Luhn and GTIN, the patterns
 that accept any length; the others reject such lengths at once). That is a measurement on random
 inputs, not a worst-case guarantee.
