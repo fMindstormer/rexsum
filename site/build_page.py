@@ -36,12 +36,14 @@ README_TITLES = {
     "upca": "UPC-A", "ean13": "EAN-13", "isbn13": "ISBN-13", "gtin14": "GTIN-14", "aba": "ABA routing number",
     "isbn10": "ISBN-10", "issn": "ISSN", "bsn": "BSN (Dutch elfproef)", "iban_de": "IBAN, Germany",
     "iban_nl": "IBAN, Netherlands", "iban_gb": "IBAN, United Kingdom", "iban_fr": "IBAN, France",
+    "lei": "LEI (Legal Entity Identifier)",
 }
 
 CONSTRUCTION = {"cyclic": "period-first elimination", "cyclic, any length": "period-first elimination",
                 "intervals": "interval splitting", "registers": "capture groups as registers"}
 facts["iban_de"] = f"{lib['iban_de']['length']:,}"
 facts["iban_de_groups"] = str(lib["iban_de"]["components"]["97"]["groups"])
+facts["lei"] = f"{lib['lei']['length']:,}"
 
 
 def fmt(n):

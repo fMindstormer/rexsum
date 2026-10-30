@@ -1,7 +1,8 @@
 # rexsum
 
 The last digit of a credit card number is a checksum. So is the last digit of an ISBN, a barcode,
-an IMEI, a US routing number, and the two digits after the country code in an IBAN. Every
+an IMEI, a US routing number, the two digits after the country code in an IBAN, and the last two
+characters of an LEI, the code that identifies a company in financial reporting. Every
 validation guide says the same thing about them: a regular expression can check the format, but
 the checksum needs code.
 
@@ -39,6 +40,7 @@ python -m rexsum card --html                # as an <input> element, with the ri
 python -m rexsum custom --weights 1,3 --mod 10 --length 13     # your own weighted sum
 python -m rexsum iban DE                    # an IBAN pattern (16 countries built in)
 python -m rexsum iban LU --layout 3n13c     # any other country, layout from the IBAN registry
+python -m rexsum lei                        # Legal Entity Identifiers
 ```
 
 Python 3.10 or later, no dependencies. A browser never tests an empty field against the pattern,
@@ -181,12 +183,21 @@ Two engine details forced the final shape:
   a loop register, and with thousands of them the German pattern takes 715 ms to compile instead
   of 58.
 
+**The same machine checks LEIs.** A Legal Entity Identifier (ISO 17442) has 20 characters: 18
+digits or capitals, then two check digits. Its rule is the IBAN's without the reshuffle: read
+with each letter as two digits, the whole number must leave 1 modulo 97. Any of the first 18
+characters may be a letter, so each takes two steps, and the pattern comes to 85,446 characters
+and 112 groups. Some validators also demand `00` in positions 5 and 6, a reservation in the
+standard's first edition; many LEIs in use, such as `HWUPKR0MPOU8FGXBT394`, have other
+characters there, so the pattern accepts any.
+
 A note on terms. Backreferences make the syntax more expressive than regular expressions: in
 general, a pattern that uses them can describe languages no finite automaton accepts. These
-patterns do not. Each covers one country, so its strings have one fixed length, and the language
-is finite and therefore regular. What the backreferences buy is size: a computed remainder is
-stored once and reused, where a pure regex has to spell out every path to it. For Germany that is
-59,966 characters instead of at least 55 million.
+patterns do not. Each covers one country (or LEIs, which always have 20 characters), so its
+strings have one fixed length, and the language is finite and therefore regular. What the
+backreferences buy is size: a computed remainder is stored once and reused, where a pure regex
+has to spell out every path to it. For Germany that is 59,966 characters instead of at least 55
+million.
 
 ### Keeping the output small
 
@@ -200,27 +211,28 @@ which is stricter than older JavaScript about what may appear inside a character
 <!-- table -->
 | Scheme | Characters | V8 compile | Median match |
 |---|---:|---:|---:|
-| Luhn, any length | 24,465 | 8 ms | 0.7 µs |
-| Payment card, 12–19 digits | 24,471 | 8 ms | 0.5 µs |
-| Payment card, 16 digits | 12,602 | 3 ms | 0.8 µs |
-| IMEI (15 digits) | 24,466 | 8 ms | 1.4 µs |
-| Canadian SIN (9 digits) | 10,379 | 29 ms | 0.3 µs |
-| GTIN, any length | 23,806 | 14 ms | 1.6 µs |
-| EAN-8 | 3,971 | 5 ms | 0.4 µs |
-| UPC-A | 12,262 | 5 ms | 0.9 µs |
-| EAN-13 | 23,808 | 13 ms | 2.3 µs |
-| ISBN-13 | 23,814 | 14 ms | 1.5 µs |
-| GTIN-14 | 12,262 | 5 ms | 1.3 µs |
-| ABA routing number | 10,022 | 13 ms | 0.5 µs |
-| ISBN-10 | 91,659 | 136 ms | 4.5 µs |
-| ISSN | 16,199 | 11 ms | 2.5 µs |
-| BSN (Dutch elfproef) | 53,594 | 60 ms | 2.9 µs |
-| IBAN, Germany | 59,966 | 44 ms | 11 µs |
-| IBAN, Netherlands | 49,350 | 33 ms | 9.0 µs |
-| IBAN, United Kingdom | 66,271 | 54 ms | 13 µs |
-| IBAN, France | 107,237 | 97 ms | 25 µs |
+| Luhn, any length | 24,465 | 7 ms | 0.6 µs |
+| Payment card, 12–19 digits | 24,471 | 7 ms | 0.4 µs |
+| Payment card, 16 digits | 12,602 | 3 ms | 0.7 µs |
+| IMEI (15 digits) | 24,466 | 7 ms | 1.2 µs |
+| Canadian SIN (9 digits) | 10,379 | 26 ms | 0.2 µs |
+| GTIN, any length | 23,806 | 11 ms | 1.3 µs |
+| EAN-8 | 3,971 | 4 ms | 0.3 µs |
+| UPC-A | 12,262 | 4 ms | 0.8 µs |
+| EAN-13 | 23,808 | 12 ms | 2.1 µs |
+| ISBN-13 | 23,814 | 12 ms | 1.4 µs |
+| GTIN-14 | 12,262 | 4 ms | 1.0 µs |
+| ABA routing number | 10,022 | 11 ms | 0.4 µs |
+| ISBN-10 | 91,659 | 96 ms | 3.2 µs |
+| ISSN | 16,199 | 10 ms | 2.0 µs |
+| BSN (Dutch elfproef) | 53,594 | 47 ms | 2.5 µs |
+| IBAN, Germany | 59,966 | 35 ms | 10 µs |
+| IBAN, Netherlands | 49,350 | 27 ms | 8.0 µs |
+| IBAN, United Kingdom | 66,271 | 40 ms | 12 µs |
+| IBAN, France | 107,237 | 71 ms | 19 µs |
+| LEI (Legal Entity Identifier) | 85,446 | 47 ms | 15 µs |
 
-V8 13.6.233.10-node.24 in Node 24.6.0, Apple M4, measured 2026-10-26 (`speed.json`).
+V8 13.6.233.10-node.24 in Node 24.6.0, Apple M4, measured 2026-10-30 (`speed.json`).
 <!-- /table -->
 
 ### Do they hold up in real browsers?
@@ -228,7 +240,8 @@ V8 13.6.233.10-node.24 in Node 24.6.0, Apple M4, measured 2026-10-26 (`speed.jso
 **Correctness.** Every pattern agrees with a reference implementation on 23,000 to 27,000 random
 test strings in Python. About 790 more per pattern (`tests/cases.json`) include deliberate edge
 cases (`tests/boundary.py`): swaps of neighbours that a check digit cannot catch, wrong lengths,
-spaces, fullwidth and Arabic-Indic digits, a final `X`, IBANs in lowercase or printed with spaces.
+spaces, fullwidth and Arabic-Indic digits, a final `X`, IBANs and LEIs in lowercase or printed
+with spaces.
 Each edge case's expected answer is written down, and must also agree with the reference
 checker. These strings are checked in six places, and every one gets every string right:
 
@@ -249,7 +262,7 @@ of this runs on every push (`.github/workflows/checks.yml`; latest results in
 
 **Speed.** The first keystroke in a field compiles its pattern. In Chromium that takes 2 to 62 ms
 on an Apple M4 (189 ms for ISBN-10), and every later keystroke a few microseconds. Safari compiles
-the pattern again at every keystroke, but quickly: 0.1 to 4.7 ms, growing with the pattern's length
+the pattern again at every keystroke, but quickly: 0.1 to 2.9 ms, growing with the pattern's length
 (`reports/safari.txt`). On GitHub's Linux runners, Firefox's first check takes 5 to 246 ms and
 later ones 0.06 to 1.9 ms. Backtracking regex engines can take exponential time on unlucky inputs.
 Here the slowest of 20 random 1,000-digit inputs took under 1 ms (for Luhn and GTIN, the patterns
@@ -374,7 +387,7 @@ which JavaScript rules out; step 4 writes the steps out instead, and its arithme
 around mod 97 and around how V8 compiles patterns.
 
 **What is new here.** Apart from the Luhn conversion above, I found no published regex that
-verifies a check digit (GTIN, ISBN, ABA, elfproef, IBAN), and none small enough for a `pattern`
+verifies a check digit (GTIN, ISBN, ABA, elfproef, IBAN, LEI), and none small enough for a `pattern`
 attribute. The new parts are the constructions that get there (the lookahead CRT split,
 period-first elimination, interval splitting, and a practical mod-97 register machine within
 JavaScript's rules), the check that the result works, with JavaScript off, in real browsers, and
@@ -391,9 +404,9 @@ the lower bound for pure regexes in the form given above, which I have not seen 
   Still open: whether counted repeats or lookaheads, which express AND, OR and NOT, could do much
   better; with lookaheads it becomes a question of Boolean formula size. The registers of step 4
   sidestep the question.
-- **IBAN patterns take the electronic form only:** capitals, no spaces. Each covers one country;
-  `python -m rexsum iban CC` makes the others, with `--layout` from the IBAN registry for
-  countries that are not built in.
+- **IBAN and LEI patterns take the electronic form only:** capitals, no spaces. Each IBAN pattern
+  covers one country; `python -m rexsum iban CC` makes the others, with `--layout` from the IBAN
+  registry for countries that are not built in.
 - **Damm** (a quasigroup, so nothing splits) comes out at 1,398,101 characters by direct
   elimination. Registers should handle Damm and Verhoeff, and might shrink the mod-11 patterns;
   not tried yet.
@@ -405,7 +418,7 @@ rexsum/regex.py      regex trees with simplifying constructors, printed in JavaS
 rexsum/automata.py   automata: exploration, minimization
 rexsum/elim.py       state elimination, greedy orders
 rexsum/pipeline.py   the CRT split, period-first elimination, interval splitting, pattern assembly
-rexsum/registers.py  IBAN: capture groups as registers
+rexsum/registers.py  IBAN and LEI: capture groups as registers
 rexsum/specs.py      the shipped schemes;  rexsum/schemes.py  reference checkers and experiments
 rexsum/meta.py       labels, formats, samples and keyboards, shared by the CLI, page and examples
 rexsum/bounds.py     how small a pure regex can be: the lower bound and an exhaustive check

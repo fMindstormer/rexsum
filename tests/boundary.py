@@ -1,7 +1,7 @@
 """Deliberate edge cases for every shipped pattern, each with its expected answer written down
 rather than taken from the reference checker: swaps that a check digit cannot catch, wrong
-lengths, spaces, other scripts' digits, invalid characters, a final X, and IBANs in lowercase or
-printed with spaces. make_cases.py adds them to tests/cases.json, so every engine checks them.
+lengths, spaces, other scripts' digits, invalid characters, a final X, and IBANs and LEIs in
+lowercase or printed with spaces. make_cases.py adds them to tests/cases.json, so every engine checks them.
 
 The empty string is not here: a browser never tests an empty value against the pattern, so
 whether it is accepted depends on `required`, not on the checksum. tests/browser.py checks that
@@ -29,6 +29,8 @@ EXTRA = {
              ("4111-1111-1111-1111", False, "dashes")],
     "isbn10": [("080442957x", False, "lowercase x")],
     "issn": [("1000002X", True, "ends in X"), ("1000002x", False, "lowercase x")],
+    "lei": [("HWUPKR0MPOU8FGXBT394", True, "another valid LEI, mostly letters"),
+            ("506700GE1G29325QX3A3", False, "a capital letter among the check digits")],
 }
 
 
@@ -44,7 +46,7 @@ def cases():
                 (v[:-2] + "a" + v[-1], False, "a letter where a digit belongs")]
         if n:
             rows += [(v[:-1], False, "one character short"), (v + v[-1], False, "one character too many")]
-        if name.startswith("iban"):
+        if name.startswith("iban") or name == "lei":
             rows += [(v.lower(), False, "lowercase"),
                      (" ".join(v[i:i + 4] for i in range(0, len(v), 4)), False, "printed with spaces")]
         rows += [(s, True, why) for s, why in KEPT_SWAPS.get(name, [])]

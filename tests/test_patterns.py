@@ -39,6 +39,10 @@ def test_known_numbers():
     assert rx["iban_gb"].fullmatch("GB82WEST12345698765432")
     assert not rx["iban_gb"].fullmatch("GB82WEST12345698765423")
     assert rx["iban_fr"].fullmatch("FR1420041010050500013M02606")
+    assert rx["lei"].fullmatch("506700GE1G29325QX363")
+    assert rx["lei"].fullmatch("5493001KJTIIGC8Y1R12")
+    assert not rx["lei"].fullmatch("506700GE1G29325QX336")              # last two swapped
+    assert not rx["lei"].fullmatch("506700ge1g29325qx363")
 
 
 @pytest.mark.parametrize("cc", sorted(IBAN_LAYOUTS))
@@ -103,7 +107,7 @@ def test_html_export_keyboard():
     from rexsum.__main__ import main
     import contextlib
     import io
-    for name, numeric in [("card", True), ("isbn10", False), ("issn", False), ("iban_de", False)]:
+    for name, numeric in [("card", True), ("isbn10", False), ("issn", False), ("iban_de", False), ("lei", False)]:
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
             main([name, "--html"])

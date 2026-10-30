@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Check-digit validation (Luhn, GTIN, ISBN, ABA, BSN, IBAN) in one regular expression, small enough for the HTML pattern attribute.">
+<meta name="description" content="Check-digit validation (Luhn, GTIN, ISBN, ABA, BSN, IBAN, LEI) in one regular expression, small enough for the HTML pattern attribute.">
 <title>rexsum</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -230,8 +230,8 @@ footer { color: var(--ink-3); font-size: 0.88rem; border-top: 1px solid var(--ru
     <p>IBANs are checked mod 97. That is prime, so nothing splits, and the constructions above grow like n<sup>7.6</sup> in the number of digits, and a German IBAN would need over 10<sup>8</sup> characters. No pure regex does much better: counting shows that every one needs at least 55 million. But a JavaScript regex has more syntax than a textbook regular expression. A group captured inside a lookahead keeps its value, and a backreference can test it later, so a group can serve as a register: capturing the first v characters stores the number v. Uezato used the same device in 2024 to prove exactly what such regexes can recognize (see below).</p>
     <pre class="rx">(?=(...))          stores 3: the group captures the first 3 characters
 (?=\5(?&lt;=^...))    tests whether group 5 holds 3</pre>
-    <p>Each IBAN pattern is a row of such lookaheads. Each step reads one character and writes the new remainder into fresh groups, the way you would compute it on paper. The remainder is held as two small numbers, a ≤ 13 and b ≤ 9, standing for 10a + b and never reduced: since 100 leaves 3 mod 97, a digit d turns (a, b) into (b + ⌊(3a + d) / 10⌋, (3a + d) mod 10). A letter counts as two digits. The German pattern has 59,966 characters and 69 groups, and the size grows linearly with the length.</p>
-    <p>Backreferences make the syntax more expressive than regular expressions, but these patterns do not need that power: each covers one country, so its strings have one fixed length, and the language is finite and therefore regular. What the backreferences buy is size. A computed remainder is stored once and reused, where a pure regex has to spell out every path to it: 59,966 characters for Germany instead of at least 55 million.</p>
+    <p>Each IBAN pattern is a row of such lookaheads. Each step reads one character and writes the new remainder into fresh groups, the way you would compute it on paper. The remainder is held as two small numbers, a ≤ 13 and b ≤ 9, standing for 10a + b and never reduced: since 100 leaves 3 mod 97, a digit d turns (a, b) into (b + ⌊(3a + d) / 10⌋, (3a + d) mod 10). A letter counts as two digits. The German pattern has 59,966 characters and 69 groups, and the size grows linearly with the length. The same machine checks LEIs, the 20-character codes that identify companies in financial reporting: their rule is the IBAN's without the reshuffle, and their pattern has 85,446 characters.</p>
+    <p>Backreferences make the syntax more expressive than regular expressions, but these patterns do not need that power: each covers one country, or LEIs, so its strings have one fixed length, and the language is finite and therefore regular. What the backreferences buy is size. A computed remainder is stored once and reused, where a pure regex has to spell out every path to it: 59,966 characters for Germany instead of at least 55 million.</p>
   </section>
 
   <section class="stack" aria-labelledby="all">
@@ -242,43 +242,45 @@ footer { color: var(--ink-3); font-size: 0.88rem; border-top: 1px solid var(--ru
         <thead><tr><th>Scheme</th><th class="num">Characters</th><th>Parts</th><th>Construction</th><th class="num">Compile (ms)</th><th class="num">Match (µs)</th></tr></thead>
         <tbody><tr><td>Luhn, any length</td><td class="num">24,465</td>
       <td class="parts">mod 2: 198<br>mod 5: 24,246</td><td>period-first elimination</td>
-      <td class="num">8</td><td class="num">0.7</td></tr><tr><td>Payment card number (Luhn, 12 to 19 digits)</td><td class="num">24,471</td>
+      <td class="num">7</td><td class="num">0.6</td></tr><tr><td>Payment card number (Luhn, 12 to 19 digits)</td><td class="num">24,471</td>
       <td class="parts">mod 2: 198<br>mod 5: 24,246</td><td>period-first elimination</td>
-      <td class="num">8</td><td class="num">0.5</td></tr><tr><td>Payment card number, 16 digits</td><td class="num">12,602</td>
+      <td class="num">7</td><td class="num">0.4</td></tr><tr><td>Payment card number, 16 digits</td><td class="num">12,602</td>
       <td class="parts">mod 2: 119<br>mod 5: 12,459</td><td>period-first elimination</td>
-      <td class="num">3</td><td class="num">0.8</td></tr><tr><td>IMEI (15 digits, Luhn)</td><td class="num">24,466</td>
+      <td class="num">3</td><td class="num">0.7</td></tr><tr><td>IMEI (15 digits, Luhn)</td><td class="num">24,466</td>
       <td class="parts">mod 2: 197<br>mod 5: 24,245</td><td>period-first elimination</td>
-      <td class="num">8</td><td class="num">1.4</td></tr><tr><td>Canadian SIN (9 digits, Luhn)</td><td class="num">10,379</td>
+      <td class="num">7</td><td class="num">1.2</td></tr><tr><td>Canadian SIN (9 digits, Luhn)</td><td class="num">10,379</td>
       <td class="parts">mod 2: 197<br>mod 5: 10,159</td><td>interval splitting</td>
-      <td class="num">29</td><td class="num">0.3</td></tr><tr><td>GTIN check digit, any length</td><td class="num">23,806</td>
+      <td class="num">26</td><td class="num">0.2</td></tr><tr><td>GTIN check digit, any length</td><td class="num">23,806</td>
       <td class="parts">mod 2: 35<br>mod 5: 23,750</td><td>period-first elimination</td>
-      <td class="num">14</td><td class="num">1.6</td></tr><tr><td>EAN-8</td><td class="num">3,971</td>
+      <td class="num">11</td><td class="num">1.3</td></tr><tr><td>EAN-8</td><td class="num">3,971</td>
       <td class="parts">mod 2: 35<br>mod 5: 3,913</td><td>interval splitting</td>
-      <td class="num">5</td><td class="num">0.4</td></tr><tr><td>UPC-A (12 digits)</td><td class="num">12,262</td>
+      <td class="num">4</td><td class="num">0.3</td></tr><tr><td>UPC-A (12 digits)</td><td class="num">12,262</td>
       <td class="parts">mod 2: 35<br>mod 5: 12,203</td><td>period-first elimination</td>
-      <td class="num">5</td><td class="num">0.9</td></tr><tr><td>EAN-13</td><td class="num">23,808</td>
+      <td class="num">4</td><td class="num">0.8</td></tr><tr><td>EAN-13</td><td class="num">23,808</td>
       <td class="parts">mod 2: 35<br>mod 5: 23,749</td><td>period-first elimination</td>
-      <td class="num">13</td><td class="num">2.3</td></tr><tr><td>ISBN-13</td><td class="num">23,814</td>
+      <td class="num">12</td><td class="num">2.1</td></tr><tr><td>ISBN-13</td><td class="num">23,814</td>
       <td class="parts">mod 2: 35<br>mod 5: 23,749</td><td>period-first elimination</td>
-      <td class="num">14</td><td class="num">1.5</td></tr><tr><td>GTIN-14</td><td class="num">12,262</td>
+      <td class="num">12</td><td class="num">1.4</td></tr><tr><td>GTIN-14</td><td class="num">12,262</td>
       <td class="parts">mod 2: 35<br>mod 5: 12,203</td><td>period-first elimination</td>
-      <td class="num">5</td><td class="num">1.3</td></tr><tr><td>ABA routing number (9 digits)</td><td class="num">10,022</td>
+      <td class="num">4</td><td class="num">1.0</td></tr><tr><td>ABA routing number (9 digits)</td><td class="num">10,022</td>
       <td class="parts">mod 2: 35<br>mod 5: 9,964</td><td>interval splitting</td>
-      <td class="num">13</td><td class="num">0.5</td></tr><tr><td>ISBN-10</td><td class="num">91,659</td>
+      <td class="num">11</td><td class="num">0.4</td></tr><tr><td>ISBN-10</td><td class="num">91,659</td>
       <td class="parts">mod 11: 91,640</td><td>interval splitting</td>
-      <td class="num">136</td><td class="num">4.5</td></tr><tr><td>ISSN (8 characters)</td><td class="num">16,199</td>
+      <td class="num">96</td><td class="num">3.2</td></tr><tr><td>ISSN (8 characters)</td><td class="num">16,199</td>
       <td class="parts">mod 11: 16,180</td><td>interval splitting</td>
-      <td class="num">11</td><td class="num">2.5</td></tr><tr><td>BSN (Dutch citizen service number)</td><td class="num">53,594</td>
+      <td class="num">10</td><td class="num">2.0</td></tr><tr><td>BSN (Dutch citizen service number)</td><td class="num">53,594</td>
       <td class="parts">mod 11: 53,580</td><td>interval splitting</td>
-      <td class="num">60</td><td class="num">2.9</td></tr><tr><td>IBAN, Germany</td><td class="num">59,966</td>
+      <td class="num">47</td><td class="num">2.5</td></tr><tr><td>IBAN, Germany</td><td class="num">59,966</td>
       <td class="parts">mod 97: 59,966</td><td>capture groups as registers</td>
-      <td class="num">44</td><td class="num">11.3</td></tr><tr><td>IBAN, Netherlands</td><td class="num">49,350</td>
+      <td class="num">35</td><td class="num">10.4</td></tr><tr><td>IBAN, Netherlands</td><td class="num">49,350</td>
       <td class="parts">mod 97: 49,350</td><td>capture groups as registers</td>
-      <td class="num">33</td><td class="num">9.0</td></tr><tr><td>IBAN, United Kingdom</td><td class="num">66,271</td>
+      <td class="num">27</td><td class="num">8.0</td></tr><tr><td>IBAN, United Kingdom</td><td class="num">66,271</td>
       <td class="parts">mod 97: 66,271</td><td>capture groups as registers</td>
-      <td class="num">54</td><td class="num">12.7</td></tr><tr><td>IBAN, France</td><td class="num">107,237</td>
+      <td class="num">40</td><td class="num">11.7</td></tr><tr><td>IBAN, France</td><td class="num">107,237</td>
       <td class="parts">mod 97: 107,237</td><td>capture groups as registers</td>
-      <td class="num">97</td><td class="num">24.9</td></tr>
+      <td class="num">71</td><td class="num">19.2</td></tr><tr><td>LEI (Legal Entity Identifier)</td><td class="num">85,446</td>
+      <td class="parts">mod 97: 85,446</td><td>capture groups as registers</td>
+      <td class="num">47</td><td class="num">14.6</td></tr>
         </tbody>
       </table>
     </div>

@@ -150,7 +150,7 @@ class Spec:
     name: str
     title: str
     fmt: str                         # regex for the format, checked by a lookahead
-    kind: str                        # "cyclic", "layered" or "registers" (IBAN)
+    kind: str                        # "cyclic", "layered" or "registers" (IBAN, LEI)
     m: int
     alphabet: str = DIGITS
     maps: list = field(default_factory=list)       # cyclic: digit maps by position
@@ -159,7 +159,7 @@ class Spec:
     weights: list = field(default_factory=list)    # layered
     value: object = None             # layered: (position, char) -> number or None
     n: int | None = None             # fixed length, if the format fixes it
-    cc: str = ""                     # registers: the IBAN's country code
+    cc: str = ""                     # registers: the IBAN's country code (none for LEI)
     layout: str = ""                 # registers: its BBAN layout, e.g. "8n10n"
 
 
@@ -195,8 +195,8 @@ def component(sp: Spec, q: int):
 
 def compile_spec(sp: Spec) -> dict:
     if sp.kind == "registers":
-        from .registers import iban
-        pattern, groups = iban(sp.cc, sp.layout)
+        from .registers import iban, lei
+        pattern, groups = iban(sp.cc, sp.layout) if sp.cc else lei()
         return {"name": sp.name, "title": sp.title, "pattern": pattern, "length": len(pattern),
                 "components": {97: {"length": len(pattern), "construction": "registers", "groups": groups}}}
     _interned.clear()

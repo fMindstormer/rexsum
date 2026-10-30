@@ -4,7 +4,7 @@ from __future__ import annotations
 import re
 
 from .pipeline import DIGITS, Spec
-from .registers import LETTERS, layout_regex
+from .registers import LEI_FORMAT, LETTERS, layout_regex
 from .schemes import DOUBLE, aba, bsn, digits, gtin, isbn10, luhn
 
 D = DIGITS
@@ -49,6 +49,14 @@ def iban(cc, layout):
     return check
 
 
+def lei(s):
+    """ISO 17442: 18 digits or capitals, then two check digits; reading letters as numbers
+    (A = 10) gives a number that is 1 mod 97."""
+    if len(s) != 20 or not all(c in D + LETTERS for c in s[:18]) or not digits(s[18:]):
+        return False
+    return int("".join(str(int(c, 36)) for c in s)) % 97 == 1
+
+
 def iban_spec(cc, title):
     layout = IBAN_LAYOUTS[cc]
     return (Spec(f"iban_{cc.lower()}", title, cc + layout_regex("2n" + layout), "registers", 97,
@@ -88,9 +96,10 @@ SPECS = [
     iban_spec("NL", "IBAN, Netherlands"),
     iban_spec("GB", "IBAN, United Kingdom"),
     iban_spec("FR", "IBAN, France"),
+    (Spec("lei", "LEI (Legal Entity Identifier)", LEI_FORMAT, "registers", 97, alphabet=D + LETTERS), lei),
 ]
 
 FIXED = {"card16": 16, "imei": 15, "sin": 9, "ean8": 8, "upca": 12, "ean13": 13, "isbn13": 13, "gtin14": 14,
-         "aba": 9, "isbn10": 10, "issn": 8, "bsn": 9}
+         "aba": 9, "isbn10": 10, "issn": 8, "bsn": 9, "lei": 20}
 for _sp, _ in SPECS:
     _sp.n = FIXED.get(_sp.name)

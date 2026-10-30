@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Check-digit validation (Luhn, GTIN, ISBN, ABA, BSN, IBAN) in one regular expression, small enough for the HTML pattern attribute.">
+<meta name="description" content="Check-digit validation (Luhn, GTIN, ISBN, ABA, BSN, IBAN, LEI) in one regular expression, small enough for the HTML pattern attribute.">
 <title>rexsum</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -131,8 +131,8 @@ footer { color: var(--ink-3); font-size: 0.88rem; border-top: 1px solid var(--ru
     <p>IBANs are checked mod 97. That is prime, so nothing splits, and the constructions above grow like n<sup>7.6</sup> in the number of digits, and a German IBAN would need over 10<sup>8</sup> characters. No pure regex does much better: counting shows that every one needs at least 55 million. But a JavaScript regex has more syntax than a textbook regular expression. A group captured inside a lookahead keeps its value, and a backreference can test it later, so a group can serve as a register: capturing the first v characters stores the number v. Uezato used the same device in 2024 to prove exactly what such regexes can recognize (see below).</p>
     <pre class="rx">(?=(...))          stores 3: the group captures the first 3 characters
 (?=\5(?&lt;=^...))    tests whether group 5 holds 3</pre>
-    <p>Each IBAN pattern is a row of such lookaheads. Each step reads one character and writes the new remainder into fresh groups, the way you would compute it on paper. The remainder is held as two small numbers, a ≤ 13 and b ≤ 9, standing for 10a + b and never reduced: since 100 leaves 3 mod 97, a digit d turns (a, b) into (b + ⌊(3a + d) / 10⌋, (3a + d) mod 10). A letter counts as two digits. The German pattern has {{iban_de}} characters and {{iban_de_groups}} groups, and the size grows linearly with the length.</p>
-    <p>Backreferences make the syntax more expressive than regular expressions, but these patterns do not need that power: each covers one country, so its strings have one fixed length, and the language is finite and therefore regular. What the backreferences buy is size. A computed remainder is stored once and reused, where a pure regex has to spell out every path to it: {{iban_de}} characters for Germany instead of at least 55 million.</p>
+    <p>Each IBAN pattern is a row of such lookaheads. Each step reads one character and writes the new remainder into fresh groups, the way you would compute it on paper. The remainder is held as two small numbers, a ≤ 13 and b ≤ 9, standing for 10a + b and never reduced: since 100 leaves 3 mod 97, a digit d turns (a, b) into (b + ⌊(3a + d) / 10⌋, (3a + d) mod 10). A letter counts as two digits. The German pattern has {{iban_de}} characters and {{iban_de_groups}} groups, and the size grows linearly with the length. The same machine checks LEIs, the 20-character codes that identify companies in financial reporting: their rule is the IBAN's without the reshuffle, and their pattern has {{lei}} characters.</p>
+    <p>Backreferences make the syntax more expressive than regular expressions, but these patterns do not need that power: each covers one country, or LEIs, so its strings have one fixed length, and the language is finite and therefore regular. What the backreferences buy is size. A computed remainder is stored once and reused, where a pure regex has to spell out every path to it: {{iban_de}} characters for Germany instead of at least 55 million.</p>
   </section>
 
   <section class="stack" aria-labelledby="all">

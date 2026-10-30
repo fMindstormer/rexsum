@@ -1,4 +1,5 @@
-"""IBAN (ISO 7064 MOD 97-10) as a JavaScript regex that keeps its arithmetic in capture groups.
+"""IBAN and LEI (ISO 7064 MOD 97-10) as JavaScript regexes that keep their arithmetic in capture
+groups.
 
 A pure regex for a German IBAN would need about 10^8 characters: 97 is prime, so nothing splits,
 and a regex cannot reuse in one branch what another has computed. JavaScript regexes also have
@@ -13,7 +14,7 @@ The remainder u is held as (a, b) with u == 10a + b (mod 97), a in [0, 13], b in
 never reduced. Since 100 == 3 (mod 97), reading a digit d gives
     10u + d == 3a + 10b + d,   so   a' = b + (3a + d) // 10,   b' = (3a + d) % 10,
 and a' <= 9 + (3 * 13 + 9) // 10 = 13. A register holds at most the input's length; every IBAN
-has at least 15 characters. A step writes the carry (3a + d) // 10, then a', then b'. A letter
+has at least 15 characters, and an LEI has 20. A step writes the carry (3a + d) // 10, then a', then b'. A letter
 counts as two digits (A = 10, ..., Z = 35) and takes two steps.
 """
 from __future__ import annotations
@@ -154,6 +155,19 @@ class Machine:
         return "(?:" + "|".join(alts) + ")" if alts else "(?!)"
 
 
+def read(m, j, kind):
+    """Read the character at position j into the remainder: kind n a digit, a a capital letter,
+    c either."""
+    if kind == "n":
+        m.step(j, DIGIT)
+    elif kind == "a":
+        m.step(j, TENS)
+        m.step(j, UNITS)
+    else:                               # a digit takes one step and a letter two
+        m.step(j, TENS, skip=DIGITS)
+        m.step(j, UNITS_OR_DIGIT)
+
+
 def iban(cc, layout):
     """The pattern for one country's IBANs, in electronic form (capitals, no spaces): cc, two
     check digits, then the BBAN laid out as in the IBAN registry ("8n10n": 18 digits). Returns
@@ -163,14 +177,7 @@ def iban(cc, layout):
     # ISO 13616: move the country code and check digits to the end, read each letter as two
     # digits (A = 10), and the number must be 1 mod 97
     for j, kind in enumerate(bban, start=4):
-        if kind == "n":
-            m.step(j, DIGIT)
-        elif kind == "a":
-            m.step(j, TENS)
-            m.step(j, UNITS)
-        else:                           # a digit takes one step and a letter two
-            m.step(j, TENS, skip=DIGITS)
-            m.step(j, UNITS_OR_DIGIT)
+        read(m, j, kind)
     for c in cc:
         m.step(None, VALUE[c] // 10)
         m.step(None, VALUE[c] % 10)
@@ -178,3 +185,18 @@ def iban(cc, layout):
     m.step(3, DIGIT)
     fmt = cc + layout_regex("2n" + layout)
     return f"(?={fmt}$)" + "".join(m.parts) + m.accept(1) + fmt, m.groups
+
+
+LEI_FORMAT = r"[0-9A-Z]{18}\d{2}"
+
+
+def lei():
+    """The pattern for Legal Entity Identifiers (ISO 17442): 18 digits or capitals, then two check
+    digits. Read with each letter as two digits (A = 10), the whole number must be 1 mod 97: the
+    IBAN rule, without moving anything. Returns the pattern and its number of groups."""
+    m = Machine(20)
+    for j in range(18):
+        read(m, j, "c")
+    read(m, 18, "n")
+    read(m, 19, "n")
+    return f"(?={LEI_FORMAT}$)" + "".join(m.parts) + m.accept(1) + LEI_FORMAT, m.groups
