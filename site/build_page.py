@@ -27,6 +27,7 @@ FEATURED = [
     ("sin", "9 digits, Luhn"),
     ("bsn", "9 digits, the elfproef"),
     ("iban_de", "DE, then 20 digits, no spaces"),
+    ("iban", "89 countries, 15 to 33 characters, no spaces"),
 ]
 
 # the README's names for the schemes, in its table
@@ -36,7 +37,7 @@ README_TITLES = {
     "upca": "UPC-A", "ean13": "EAN-13", "isbn13": "ISBN-13", "gtin14": "GTIN-14", "aba": "ABA routing number",
     "isbn10": "ISBN-10", "issn": "ISSN", "bsn": "BSN (Dutch elfproef)", "iban_de": "IBAN, Germany",
     "iban_nl": "IBAN, Netherlands", "iban_gb": "IBAN, United Kingdom", "iban_fr": "IBAN, France",
-    "lei": "LEI (Legal Entity Identifier)",
+    "iban": "IBAN, any country (89)", "lei": "LEI (Legal Entity Identifier)",
 }
 
 CONSTRUCTION = {"cyclic": "period-first elimination", "cyclic, any length": "period-first elimination",
@@ -44,6 +45,7 @@ CONSTRUCTION = {"cyclic": "period-first elimination", "cyclic, any length": "per
 facts["iban_de"] = f"{lib['iban_de']['length']:,}"
 facts["iban_de_groups"] = str(lib["iban_de"]["components"]["97"]["groups"])
 facts["lei"] = f"{lib['lei']['length']:,}"
+facts["iban_any"] = f"{lib['iban']['length']:,}"
 
 
 def fmt(n):

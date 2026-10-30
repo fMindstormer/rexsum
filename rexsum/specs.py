@@ -4,6 +4,7 @@ from __future__ import annotations
 import re
 
 from .pipeline import DIGITS, Spec
+from .iban_registry import REGISTRY
 from .registers import LEI_FORMAT, LETTERS, layout_regex
 from .schemes import DOUBLE, aba, bsn, digits, gtin, isbn10, luhn
 
@@ -29,9 +30,7 @@ def issn(s):
 
 
 # BBAN layouts from the IBAN registry: n a digit, a a capital letter, c either
-IBAN_LAYOUTS = {"AT": "5n11n", "BE": "3n7n2n", "CH": "5n12c", "DE": "8n10n", "DK": "4n9n1n", "ES": "4n4n1n1n10n",
-                "FI": "3n11n", "FR": "5n5n11c2n", "GB": "4a6n8n", "IE": "4a6n8n", "IT": "1a5n5n12c",
-                "NL": "4a10n", "NO": "4n6n1n", "PL": "8n16n", "PT": "4n4n11n2n", "SE": "3n16n1n"}
+IBAN_LAYOUTS = REGISTRY
 
 
 def iban(cc, layout):
@@ -47,6 +46,14 @@ def iban(cc, layout):
             return False
         return int("".join(str(int(c, 36)) for c in s[4:] + s[:4])) % 97 == 1
     return check
+
+
+_IBAN_CHECKS = {cc: iban(cc, lay) for cc, lay in REGISTRY.items()}
+
+
+def iban_any(s):
+    """An IBAN of any country in the registry."""
+    return s[:2] in _IBAN_CHECKS and _IBAN_CHECKS[s[:2]](s)
 
 
 def lei(s):
@@ -96,6 +103,8 @@ SPECS = [
     iban_spec("NL", "IBAN, Netherlands"),
     iban_spec("GB", "IBAN, United Kingdom"),
     iban_spec("FR", "IBAN, France"),
+    (Spec("iban", "IBAN, any country", r"[A-Z]{2}\d{2}[0-9A-Z]{11,30}", "registers", 97,
+          alphabet=D + LETTERS), iban_any),
     (Spec("lei", "LEI (Legal Entity Identifier)", LEI_FORMAT, "registers", 97, alphabet=D + LETTERS), lei),
 ]
 

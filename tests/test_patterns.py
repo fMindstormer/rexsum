@@ -39,6 +39,10 @@ def test_known_numbers():
     assert rx["iban_gb"].fullmatch("GB82WEST12345698765432")
     assert not rx["iban_gb"].fullmatch("GB82WEST12345698765423")
     assert rx["iban_fr"].fullmatch("FR1420041010050500013M02606")
+    assert rx["iban"].fullmatch("GB82WEST12345698765432")
+    assert rx["iban"].fullmatch("NO9386011117947")
+    assert not rx["iban"].fullmatch("DE89370400440532013001")
+    assert not rx["iban"].fullmatch("XX89370400440532013000")
     assert rx["lei"].fullmatch("506700GE1G29325QX363")
     assert rx["lei"].fullmatch("5493001KJTIIGC8Y1R12")
     assert not rx["lei"].fullmatch("506700GE1G29325QX336")              # last two swapped

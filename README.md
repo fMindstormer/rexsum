@@ -38,8 +38,8 @@ python -m rexsum --list                     # the shipped schemes
 python -m rexsum card                       # the pattern
 python -m rexsum card --html                # as an <input> element, with the right keyboard
 python -m rexsum custom --weights 1,3 --mod 10 --length 13     # your own weighted sum
-python -m rexsum iban DE                    # an IBAN pattern (16 countries built in)
-python -m rexsum iban LU --layout 3n13c     # any other country, layout from the IBAN registry
+python -m rexsum iban                       # one IBAN pattern for every country
+python -m rexsum iban DE                    # a smaller one for a single country
 python -m rexsum lei                        # Legal Entity Identifiers
 ```
 
@@ -191,13 +191,24 @@ and 112 groups. Some validators also demand `00` in positions 5 and 6, a reserva
 standard's first edition; many LEIs in use, such as `HWUPKR0MPOU8FGXBT394`, have other
 characters there, so the pattern accepts any.
 
+**One pattern for every country.** A form usually does not know the country in advance, so
+`python -m rexsum iban` gives one pattern for all 89 countries in SWIFT's IBAN registry. A
+lookahead checks the layout the registry gives for the country code. Then a single register
+machine computes the remainder for all of them: it reads every position up to the 33rd, as a
+letter or a digit wherever some country allows one, and past the end of a shorter IBAN it leaves
+the remainder alone. With the length no longer fixed, a register is tested from the start only:
+`(?<=^...)` for a single value, and `(?<=....)(?<!.........)` for a run of values, which keeps
+every lookbehind fixed-width. The pattern has 178,241 characters and 190 groups, the largest
+here. A form that knows the country does better with that country's own pattern, 59,966
+characters for Germany.
+
 A note on terms. Backreferences make the syntax more expressive than regular expressions: in
 general, a pattern that uses them can describe languages no finite automaton accepts. These
-patterns do not. Each covers one country (or LEIs, which always have 20 characters), so its
-strings have one fixed length, and the language is finite and therefore regular. What the
-backreferences buy is size: a computed remainder is stored once and reused, where a pure regex
-has to spell out every path to it. For Germany that is 59,966 characters instead of at least 55
-million.
+patterns do not. Their strings have bounded length (one length per country, 20 characters for
+LEIs, 15 to 33 for the all-country pattern), so each language is finite and therefore regular.
+What the backreferences buy is size: a computed remainder is stored once and reused, where a pure
+regex has to spell out every path to it. For Germany that is 59,966 characters instead of at
+least 55 million.
 
 ### Keeping the output small
 
@@ -212,25 +223,26 @@ which is stricter than older JavaScript about what may appear inside a character
 | Scheme | Characters | V8 compile | Median match |
 |---|---:|---:|---:|
 | Luhn, any length | 24,465 | 7 ms | 0.6 µs |
-| Payment card, 12–19 digits | 24,471 | 7 ms | 0.4 µs |
-| Payment card, 16 digits | 12,602 | 3 ms | 0.7 µs |
+| Payment card, 12–19 digits | 24,471 | 6 ms | 0.4 µs |
+| Payment card, 16 digits | 12,602 | 3 ms | 0.6 µs |
 | IMEI (15 digits) | 24,466 | 7 ms | 1.2 µs |
-| Canadian SIN (9 digits) | 10,379 | 26 ms | 0.2 µs |
+| Canadian SIN (9 digits) | 10,379 | 20 ms | 0.2 µs |
 | GTIN, any length | 23,806 | 11 ms | 1.3 µs |
 | EAN-8 | 3,971 | 4 ms | 0.3 µs |
 | UPC-A | 12,262 | 4 ms | 0.8 µs |
-| EAN-13 | 23,808 | 12 ms | 2.1 µs |
-| ISBN-13 | 23,814 | 12 ms | 1.4 µs |
+| EAN-13 | 23,808 | 11 ms | 2.0 µs |
+| ISBN-13 | 23,814 | 11 ms | 1.3 µs |
 | GTIN-14 | 12,262 | 4 ms | 1.0 µs |
-| ABA routing number | 10,022 | 11 ms | 0.4 µs |
-| ISBN-10 | 91,659 | 96 ms | 3.2 µs |
-| ISSN | 16,199 | 10 ms | 2.0 µs |
-| BSN (Dutch elfproef) | 53,594 | 47 ms | 2.5 µs |
-| IBAN, Germany | 59,966 | 35 ms | 10 µs |
-| IBAN, Netherlands | 49,350 | 27 ms | 8.0 µs |
-| IBAN, United Kingdom | 66,271 | 40 ms | 12 µs |
-| IBAN, France | 107,237 | 71 ms | 19 µs |
-| LEI (Legal Entity Identifier) | 85,446 | 47 ms | 15 µs |
+| ABA routing number | 10,022 | 11 ms | 0.5 µs |
+| ISBN-10 | 91,659 | 93 ms | 3.4 µs |
+| ISSN | 16,199 | 10 ms | 1.9 µs |
+| BSN (Dutch elfproef) | 53,594 | 45 ms | 2.3 µs |
+| IBAN, Germany | 59,966 | 35 ms | 9.3 µs |
+| IBAN, Netherlands | 49,350 | 25 ms | 7.6 µs |
+| IBAN, United Kingdom | 66,271 | 36 ms | 11 µs |
+| IBAN, France | 107,237 | 69 ms | 17 µs |
+| IBAN, any country (89) | 178,241 | 158 ms | 22 µs |
+| LEI (Legal Entity Identifier) | 85,446 | 47 ms | 14 µs |
 
 V8 13.6.233.10-node.24 in Node 24.6.0, Apple M4, measured 2026-10-30 (`speed.json`).
 <!-- /table -->
@@ -264,14 +276,14 @@ of this runs on every push (`.github/workflows/checks.yml`; latest results in
 (`reports/browsers.json`), that first check takes 2 to 71 ms in Chromium (302 ms for ISBN-10)
 and 5 to 99 ms in Firefox (252 ms for ISBN-10); later checks take 0.006 to 0.95 ms in Chromium
 and 0.06 to 2.1 ms in Firefox, growing with the pattern's length. Safari compiles the pattern
-again at every keystroke, but quickly: 0.1 to 2.9 ms on an Apple M4 (`reports/safari.txt`). Backtracking regex engines can take exponential time on unlucky inputs.
+again at every keystroke, but quickly: 0.1 to 4.7 ms on an Apple M4 (`reports/safari.txt`). Backtracking regex engines can take exponential time on unlucky inputs.
 Here the slowest of 20 random 1,000-digit inputs took under 1 ms (for Luhn and GTIN, the patterns
 that accept any length; the others reject such lengths at once). That is a measurement on random
 inputs, not a worst-case guarantee.
 
 **Size on the wire.** Servers compress HTML, and the patterns compress well, 8 to 45 times:
 Luhn's 24,465 characters gzip to 542 bytes and the German IBAN's 59,966 to 6.6 kB. GitHub Pages
-sends the demo page, 360 kB with eleven fields, as 30 kB.
+sends the demo page, 545 kB with twelve fields, as 51 kB.
 
 ## How small can a pure regex be?
 
@@ -404,9 +416,9 @@ the lower bound for pure regexes in the form given above, which I have not seen 
   Still open: whether counted repeats or lookaheads, which express AND, OR and NOT, could do much
   better; with lookaheads it becomes a question of Boolean formula size. The registers of step 4
   sidestep the question.
-- **IBAN and LEI patterns take the electronic form only:** capitals, no spaces. Each IBAN pattern
-  covers one country; `python -m rexsum iban CC` makes the others, with `--layout` from the IBAN
-  registry for countries that are not built in.
+- **IBAN and LEI patterns take the electronic form only:** capitals, no spaces. The IBAN layouts
+  are those of the registry's release 101 (`rexsum/iban_registry.py`); a country added later
+  needs a rebuild, or `python -m rexsum iban CC --layout …` for that country alone.
 - **Damm** (a quasigroup, so nothing splits) comes out at 1,398,101 characters by direct
   elimination. Registers should handle Damm and Verhoeff, and might shrink the mod-11 patterns;
   not tried yet.
@@ -419,6 +431,7 @@ rexsum/automata.py   automata: exploration, minimization
 rexsum/elim.py       state elimination, greedy orders
 rexsum/pipeline.py   the CRT split, period-first elimination, interval splitting, pattern assembly
 rexsum/registers.py  IBAN and LEI: capture groups as registers
+rexsum/iban_registry.py  every country's IBAN layout, from SWIFT's IBAN Registry
 rexsum/specs.py      the shipped schemes;  rexsum/schemes.py  reference checkers and experiments
 rexsum/meta.py       labels, formats, samples and keyboards, shared by the CLI, page and examples
 rexsum/bounds.py     how small a pure regex can be: the lower bound and an exhaustive check

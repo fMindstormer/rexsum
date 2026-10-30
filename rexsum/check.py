@@ -24,6 +24,28 @@ def iban_candidates(sp, rng, k):
     return out
 
 
+def iban_any_candidates(sp, rng, k):
+    """IBANs of random registry countries, about a tenth with the right check digits, a fifth of
+    them relabelled with another country's code, and strings of other shapes."""
+    from .iban_registry import REGISTRY
+    pick = {"n": DIGITS, "a": LETTERS, "c": DIGITS + LETTERS}
+    ccs = sorted(REGISTRY)
+    out = []
+    for _ in range(k):
+        cc = rng.choice(ccs)
+        bban = "".join(rng.choice(pick[t]) for t in positions(REGISTRY[cc]))
+        if rng.random() < 0.1:
+            kk = 98 - int("".join(str(int(c, 36)) for c in bban + cc + "00")) % 97
+        else:
+            kk = rng.randrange(100)
+        if rng.random() < 0.2:
+            cc = rng.choice(ccs)
+        out.append(f"{cc}{kk:02d}{bban}")
+    for _ in range(k // 10):
+        out.append("".join(rng.choice(sp.alphabet) for _ in range(rng.randrange(4, 35))))
+    return out
+
+
 def lei_candidates(sp, rng, k):
     """LEIs, about a tenth with the right check digits, and strings of other shapes."""
     out = []
@@ -43,7 +65,9 @@ def candidates(sp, rng, k):
     """Random strings shaped like the format (about a tenth valid), strings with one character
     changed, and strings of other lengths."""
     if sp.kind == "registers":
-        return iban_candidates(sp, rng, k) if sp.cc else lei_candidates(sp, rng, k)
+        if sp.cc:
+            return iban_candidates(sp, rng, k)
+        return iban_any_candidates(sp, rng, k) if sp.name == "iban" else lei_candidates(sp, rng, k)
     alpha = sp.alphabet
     fixed = re.fullmatch(r"\\d\{(\d+)\}", sp.fmt) or re.fullmatch(r"\\d\{(\d+)\}\[\\dX\]", sp.fmt)
     lens = list(range(1, 25))

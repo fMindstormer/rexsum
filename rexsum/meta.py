@@ -49,6 +49,8 @@ SCHEMES = {
                   "GB82WEST12345698765432", "GB82WEST12345698765433", letters=True),
     "iban_fr": _s("French IBAN", "FR, 2 check digits, then 23 characters: digits, and capitals in the account number. No spaces.",
                   "FR1420041010050500013M02606", "FR1420041010050500013M02602", letters=True),
+    "iban": _s("IBAN, any country", "2 capitals for the country, 2 check digits, then the account number laid out as that country's IBANs are (15 to 33 characters in all). No spaces.",
+               "GB82WEST12345698765432", "GB82WEST12345698765433", letters=True),
     "lei": _s("LEI (Legal Entity Identifier)", "18 digits or capitals, then 2 check digits. No spaces.",
               "506700GE1G29325QX363", "506700GE1G29325QX362", letters=True),
 }

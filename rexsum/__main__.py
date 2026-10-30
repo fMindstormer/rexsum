@@ -5,9 +5,10 @@
     python -m rexsum card --html             as an <input> element
     python -m rexsum custom --weights 1,3 --mod 10 --from right [--length 13]
                                              compile a weighted check-digit sum of your own
+    python -m rexsum iban                    one IBAN pattern for every country (from patterns.json)
     python -m rexsum iban DE [--layout 8n10n]
-                                             an IBAN pattern for one country (built-in layouts
-                                             for some; --layout as in the IBAN registry)
+                                             a smaller pattern for one country (layouts built in
+                                             for the registry's; --layout as the registry writes it)
 """
 from __future__ import annotations
 
@@ -42,9 +43,9 @@ def main(argv=None):
     if a.list or not a.scheme:
         for name, r in lib.items():
             print(f"{name:8s} {r['length']:>8,} chars  {r['title']}")
-        print(f"iban CC  compiled on request; built-in layouts for {' '.join(sorted(IBAN_LAYOUTS))}")
+        print(f"iban CC  one country, compiled on request; layouts for {len(IBAN_LAYOUTS)} countries built in")
         return 0
-    if a.scheme == "iban":
+    if a.scheme == "iban" and (a.country or a.layout):
         cc = (a.country or "").upper()
         layout = a.layout or IBAN_LAYOUTS.get(cc)
         if len(cc) != 2 or not cc.isalpha() or not layout:

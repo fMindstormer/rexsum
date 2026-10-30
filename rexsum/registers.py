@@ -68,8 +68,9 @@ def layout_regex(layout):
 class Machine:
     """Writes the steps. Groups are numbered in the order they appear in the text."""
 
-    def __init__(self, n):
-        self.n = n                      # the input's length
+    def __init__(self, n, fixed=True):
+        self.n = n                      # the input's length, or the shortest input's if not fixed
+        self.fixed = fixed
         self.groups = 0
         self.parts = []
         self.a = self.b = None          # the groups holding a and b; None holds 0
@@ -83,6 +84,16 @@ class Machine:
             return ""
         xs = sorted(xs)
         assert xs[-1] <= self.n, f"{xs[-1]} does not fit in {self.n} characters"
+        if not self.fixed:              # test the position from the start, in runs of values
+            runs = []
+            for x in xs:
+                if runs and runs[-1][1] == x - 1:
+                    runs[-1][1] = x
+                else:
+                    runs.append([x, x])
+            alts = [("^" if lo == 0 else f"(?<=^{dots(lo)})") if lo == hi else
+                    (f"(?<={dots(lo)})" if lo else "") + f"(?<!{dots(hi + 1)})" for lo, hi in runs]
+            return f"(?=\\{g}" + (alts[0] if len(alts) == 1 else "(?:" + "|".join(alts) + ")") + ")"
         tails = [dots(self.n - x) for x in xs]
         out = f"(?=\\{g}" + (tails[0] if len(tails) == 1 else "(?:" + "|".join(tails) + ")") + "$)"
         if len(xs) == 1:                # or test the position from the start, if shorter
@@ -97,10 +108,12 @@ class Machine:
         self.parts.append("(?=(" + "|".join(alts) + "))")
         return self.groups
 
-    def step(self, j, by, skip=""):
+    def step(self, j, by, skip="", end=False):
         """Read one digit: u <- 10u + d. `by` maps each digit d to the characters that mean d at
-        position j, or is the digit itself if it is known. Characters in `skip` leave u as it is."""
+        position j, or is the digit itself if it is known. Characters in `skip` leave u as it is,
+        and so does the end of the input if `end` is set."""
         A, B = self.a, self.b
+        keep = skip or end
         known = isinstance(by, int)
         ds = [by] if known else sorted(by)
 
@@ -109,6 +122,13 @@ class Machine:
 
         def ref(g):
             return "" if g is None else f"\\{g}"
+
+        def kept():
+            """u stays as it is: the character at j is in `skip`, or (with `end`) there is none."""
+            if not end:
+                return at(skip)
+            rest = sorted(set(DIGITS + LETTERS) - set(skip))
+            return f"(?!{dots(j)}{cls(''.join(rest)) if skip else '.'})"
 
         # the carry (3a + d) // 10, which is q or q + 1 where 3a = 10q + r
         alts, cs = [], set()
@@ -125,17 +145,17 @@ class Machine:
             alts.append(self.test(A, {a}, self.arange) + body)
         C = self.write(alts) if len(cs) > 1 else None
         # a' = b + carry
-        if B is None and cs == {0} and not skip:
+        if B is None and cs == {0} and not keep:
             A2 = None
         else:
-            alts = [at(skip) + ref(A)] if skip else []
+            alts = [kept() + ref(A)] if keep else []
             alts += [self.test(C, {c}, cs) + ref(B) + dots(c) for c in sorted(cs)]
             A2 = self.write(alts)
         # b' = (3a + d) % 10, with the a's grouped by 3a % 10
         byr = {}
         for a in sorted(self.arange):
             byr.setdefault(3 * a % 10, set()).add(a)
-        alts = [at(skip) + ref(B)] if skip else []
+        alts = [kept() + ref(B)] if keep else []
         for r, as_ in sorted(byr.items()):
             if known:
                 body = dots((r + by) % 10)
@@ -144,8 +164,8 @@ class Machine:
                                         for i, d in enumerate(ds)) + ")"
             alts.append(self.test(A, as_, self.arange) + body)
         B2 = self.write(alts)
-        arange = {b + c for b in self.brange for c in cs} | (self.arange if skip else set())
-        brange = {(3 * a + d) % 10 for a in self.arange for d in ds} | (self.brange if skip else set())
+        arange = {b + c for b in self.brange for c in cs} | (self.arange if keep else set())
+        brange = {(3 * a + d) % 10 for a in self.arange for d in ds} | (self.brange if keep else set())
         self.a, self.b, self.arange, self.brange = A2, B2, arange, brange
 
     def accept(self, target):
@@ -155,17 +175,17 @@ class Machine:
         return "(?:" + "|".join(alts) + ")" if alts else "(?!)"
 
 
-def read(m, j, kind):
+def read(m, j, kind, end=False):
     """Read the character at position j into the remainder: kind n a digit, a a capital letter,
-    c either."""
+    c either. With `end`, the input may stop before j, and then nothing is read."""
     if kind == "n":
-        m.step(j, DIGIT)
+        m.step(j, DIGIT, end=end)
     elif kind == "a":
-        m.step(j, TENS)
-        m.step(j, UNITS)
+        m.step(j, TENS, end=end)
+        m.step(j, UNITS, end=end)
     else:                               # a digit takes one step and a letter two
-        m.step(j, TENS, skip=DIGITS)
-        m.step(j, UNITS_OR_DIGIT)
+        m.step(j, TENS, skip=DIGITS, end=end)
+        m.step(j, UNITS_OR_DIGIT, end=end)
 
 
 def iban(cc, layout):
@@ -200,3 +220,39 @@ def lei():
     read(m, 18, "n")
     read(m, 19, "n")
     return f"(?={LEI_FORMAT}$)" + "".join(m.parts) + m.accept(1) + LEI_FORMAT, m.groups
+
+
+def country_codes(ccs):
+    """Two-letter codes as a short alternation: DE|DK|... -> D[EK]|..."""
+    by = {}
+    for cc in sorted(ccs):
+        by.setdefault(cc[0], []).append(cc[1])
+    alts = [first + cls("".join(seconds)) for first, seconds in by.items()]
+    return alts[0] if len(alts) == 1 else "(?:" + "|".join(alts) + ")"
+
+
+def iban_any(layouts):
+    """One pattern for the IBANs of every country in `layouts` ({country code: BBAN layout}).
+    A lookahead checks the country's layout, and one register machine computes the remainder for
+    all of them: it reads every position that some country uses, a letter or a digit wherever any
+    country allows one, and leaves the remainder alone past the end of a shorter IBAN. Registers
+    are tested from the start of the input, since its length varies. Returns the pattern and its
+    number of groups."""
+    kinds = {cc: positions(lay) for cc, lay in layouts.items()}
+    shortest = 4 + min(map(len, kinds.values()))
+    longest = 4 + max(map(len, kinds.values()))
+    by_layout = {}
+    for cc, lay in layouts.items():
+        by_layout.setdefault(layout_regex(lay), []).append(cc)
+    fmt = "(?=(?:" + "|".join(country_codes(ccs) + r"\d{2}" + rx
+                              for rx, ccs in sorted(by_layout.items(), key=lambda x: sorted(x[1]))) + ")$)"
+    m = Machine(shortest, fixed=False)
+    for j in range(4, longest):
+        ks = {k[j - 4] for k in kinds.values() if len(k) > j - 4}
+        kind = "n" if ks == {"n"} else "a" if ks == {"a"} else "c"
+        read(m, j, kind, end=j >= shortest)
+    for j in (0, 1):                    # the country code, then the check digits
+        read(m, j, "a")
+    read(m, 2, "n")
+    read(m, 3, "n")
+    return fmt + "".join(m.parts) + m.accept(1) + "[0-9A-Z]+", m.groups

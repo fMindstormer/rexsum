@@ -29,6 +29,11 @@ EXTRA = {
              ("4111-1111-1111-1111", False, "dashes")],
     "isbn10": [("080442957x", False, "lowercase x")],
     "issn": [("1000002X", True, "ends in X"), ("1000002x", False, "lowercase x")],
+    "iban": [("DE89370400440532013000", True, "a German IBAN"),
+             ("NO9386011117947", True, "the shortest: Norway, 15 characters"),
+             ("RU0304452522540817810538091310419", True, "the longest: Russia, 33 characters"),
+             ("US88370400440532013000", False, "right check digits, but no IBANs in the US"),
+             ("AT71370400440532013000", False, "right check digits, German length under an Austrian code")],
     "lei": [("HWUPKR0MPOU8FGXBT394", True, "another valid LEI, mostly letters"),
             ("506700GE1G29325QX3A3", False, "a capital letter among the check digits")],
 }

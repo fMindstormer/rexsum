@@ -159,7 +159,7 @@ class Spec:
     weights: list = field(default_factory=list)    # layered
     value: object = None             # layered: (position, char) -> number or None
     n: int | None = None             # fixed length, if the format fixes it
-    cc: str = ""                     # registers: the IBAN's country code (none for LEI)
+    cc: str = ""                     # registers: the IBAN's country code (none: every country, or LEI)
     layout: str = ""                 # registers: its BBAN layout, e.g. "8n10n"
 
 
@@ -195,8 +195,12 @@ def component(sp: Spec, q: int):
 
 def compile_spec(sp: Spec) -> dict:
     if sp.kind == "registers":
-        from .registers import iban, lei
-        pattern, groups = iban(sp.cc, sp.layout) if sp.cc else lei()
+        from .iban_registry import REGISTRY
+        from .registers import iban, iban_any, lei
+        if sp.cc:
+            pattern, groups = iban(sp.cc, sp.layout)
+        else:
+            pattern, groups = iban_any(REGISTRY) if sp.name == "iban" else lei()
         return {"name": sp.name, "title": sp.title, "pattern": pattern, "length": len(pattern),
                 "components": {97: {"length": len(pattern), "construction": "registers", "groups": groups}}}
     _interned.clear()
