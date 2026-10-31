@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from rexsum.bounds import bounds, digit, exact, iban, multiples  # noqa: E402
+from rexsum.bounds import bounds, digit, dni, exact, hetu, iban, multiples, nir, ogm, vin  # noqa: E402
 
 TINY = [((1, 1, 1, 1), 3, 2), ((1, 2, 1, 2, 1), 3, 2), ((4, 2, 1), 5, 3), ((2, 4, 3, 1), 5, 2),
         ((1, 3, 4, 2, 1), 5, 2), ((1, 2, 4, 1, 2), 7, 2), ((4, 2, 1, 4, 2, 1), 7, 2)]
@@ -33,3 +33,6 @@ def test_quoted_figures():
     lo, up, _ = iban("DE", 18)
     assert lo == Fraction(11168428237247836984769, 201098145295168) and up == 116_317_552
     assert math.ceil(lo) == 55_537_202
+    lo, up, _ = vin()
+    assert math.ceil(lo) == 234_939 and up == 427_130
+    assert [math.ceil(f()[0]) for f in (dni, hetu, ogm, nir)] == [62_345, 45_155, 900_343, 5_879_585]

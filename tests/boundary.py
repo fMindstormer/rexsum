@@ -1,7 +1,7 @@
 """Deliberate edge cases for every shipped pattern, each with its expected answer written down
 rather than taken from the reference checker: swaps that a check digit cannot catch, wrong
 lengths, spaces, other scripts' digits, invalid characters, a final X, and IBANs and LEIs in
-lowercase or printed with spaces. make_cases.py adds them to tests/cases.json, so every engine checks them.
+lowercase or printed with spaces, and VINs. make_cases.py adds them to tests/cases.json, so every engine checks them.
 
 The empty string is not here: a browser never tests an empty value against the pattern, so
 whether it is accepted depends on `required`, not on the checksum. tests/browser.py checks that
@@ -36,6 +36,28 @@ EXTRA = {
              ("AT71370400440532013000", False, "right check digits, German length under an Austrian code")],
     "lei": [("HWUPKR0MPOU8FGXBT394", True, "another valid LEI, mostly letters"),
             ("506700GE1G29325QX3A3", False, "a capital letter among the check digits")],
+    "rf": [("RF185390075470Y", True, "a reference ending in a letter"), ("RF741", True, "the shortest: 5 characters"),
+           ("RF09ZZZZZZZZZZZZZZZZZZZZZ", True, "the longest: 25 characters, all letters"),
+           ("RF291111111111111111111111", False, "26 characters, too long, though the check digits fit"),
+           ("XX18539007547034", False, "no RF in front")],
+    "vin": [("11111111111111111", True, "all ones: the check digit is 1"),
+            ("1HGCM82633A004352", True, "another valid VIN"),
+            ("1M8GDM9AKXP042788", False, "the check digit swapped with its neighbour"),
+            ("1M8GDM9AXKP04278O", False, "a letter O, which VINs never use"),
+            ("WVWZZZ1JZXW000001", False, "a European VIN with Z in the check position")],
+    "dni": [("X2482300W", True, "an NIE: X counts as 0"), ("Y2482300Q", True, "an NIE: Y counts as 1"),
+            ("Y2482300W", False, "the same digits after Y need another letter"),
+            ("A2482300W", False, "a letter other than X, Y or Z first"), ("54362315-K", False, "a dash before the letter")],
+    "hetu": [("131052A308T", True, "the same code with A for the 2000s"),
+             ("290200A1239", True, "29 February 2000, a leap year"),
+             ("290200-1239", False, "29 February 1900, which did not exist"),
+             ("310252-308Y", False, "31 February"), ("131052-001W", False, "number 001, below the first one issued"),
+             ("131052-900W", False, "900 to 999 are temporary numbers"), ("131052-308t", False, "lowercase check character")],
+    "ogm": [("000000000097", True, "all zeros, where the check is 97"), ("000000000000", False, "00 is never a check"),
+            ("+++010/8068/17183+++", False, "the printed form, with +++ and slashes")],
+    "nir": [("253072B07300470", True, "Corsica: department 2B counts as 18"),
+            ("253072A07300443", True, "and 2A as 19"), ("253072C07300443", False, "there is no department 2C"),
+            ("100000000004797", True, "a multiple of 97, where the key is 97")],
 }
 
 
@@ -51,7 +73,7 @@ def cases():
                 (v[:-2] + "a" + v[-1], False, "a letter where a digit belongs")]
         if n:
             rows += [(v[:-1], False, "one character short"), (v + v[-1], False, "one character too many")]
-        if name.startswith("iban") or name == "lei":
+        if name.startswith("iban") or name in ("lei", "rf", "vin", "dni", "hetu"):
             rows += [(v.lower(), False, "lowercase"),
                      (" ".join(v[i:i + 4] for i in range(0, len(v), 4)), False, "printed with spaces")]
         rows += [(s, True, why) for s, why in KEPT_SWAPS.get(name, [])]

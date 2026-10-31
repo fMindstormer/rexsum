@@ -150,14 +150,17 @@ class Spec:
     name: str
     title: str
     fmt: str                         # regex for the format, checked by a lookahead
-    kind: str                        # "cyclic", "layered" or "registers" (IBAN, LEI)
+    kind: str                        # "cyclic", "layered", "sums" (a weighted sum in a register) or
+                                     # "registers" (IBAN, LEI, RF)
     m: int
     alphabet: str = DIGITS
     maps: list = field(default_factory=list)       # cyclic: digit maps by position
     backwards: bool = True
     parity: int | None = None        # cyclic: number of characters mod period, if fixed
-    weights: list = field(default_factory=list)    # layered
-    value: object = None             # layered: (position, char) -> number or None
+    weights: list = field(default_factory=list)    # layered, sums
+    value: object = None             # layered, sums: (position, char) -> number or None
+    target: int = 0                  # sums: the sum must be this mod m
+    check: object = None             # sums: instead, the input ends with check(sum mod m)
     n: int | None = None             # fixed length, if the format fixes it
     cc: str = ""                     # registers: the IBAN's country code (none: every country, or LEI)
     layout: str = ""                 # registers: its BBAN layout, e.g. "8n10n"
@@ -165,7 +168,7 @@ class Spec:
 
 def contribution(sp: Spec):
     """(position from the left, char) -> contribution to the sum, for a fixed length."""
-    if sp.kind == "layered":
+    if sp.kind in ("layered", "sums"):
         def f(i, c):
             v = sp.value(i, c)
             return None if v is None else (sp.weights[i] or 0) * v
@@ -196,13 +199,19 @@ def component(sp: Spec, q: int):
 def compile_spec(sp: Spec) -> dict:
     if sp.kind == "registers":
         from .iban_registry import REGISTRY
-        from .registers import iban, iban_any, lei
+        from .registers import iban, iban_any, lei, rf
         if sp.cc:
             pattern, groups = iban(sp.cc, sp.layout)
         else:
-            pattern, groups = iban_any(REGISTRY) if sp.name == "iban" else lei()
+            pattern, groups = {"iban": lambda: iban_any(REGISTRY), "lei": lei, "rf": rf}[sp.name]()
         return {"name": sp.name, "title": sp.title, "pattern": pattern, "length": len(pattern),
                 "components": {97: {"length": len(pattern), "construction": "registers", "groups": groups}}}
+    if sp.kind == "sums":
+        from .registers import weighted
+        body, groups = weighted(sp.n, sp.m, contribution(sp), sp.alphabet, sp.target, sp.check)
+        pattern = f"(?={sp.fmt}$){body}{sp.fmt}"
+        return {"name": sp.name, "title": sp.title, "pattern": pattern, "length": len(pattern),
+                "components": {sp.m: {"length": len(pattern), "construction": "registers", "groups": groups}}}
     _interned.clear()
     parts = []
     for q in prime_powers(sp.m):

@@ -77,6 +77,65 @@ def iban(cc, bban_digits):
     return bounds(positions, 97, 1 - cc_value * 100)
 
 
+def vin():
+    """VINs: 17 positions, letters standing for digits, weights mod 11 (the check digit, 0 to 9 or
+    X for 10, counts -1). Several characters share a residue here; a class of them counts as one
+    symbol, in the bound and in the construction alike."""
+    from .specs import VIN_VALUE, VIN_WEIGHTS
+    positions = []
+    for i, w in enumerate(VIN_WEIGHTS):
+        d = {}
+        for v in (range(11) if i == 8 else VIN_VALUE.values()):
+            d[w * v % 11] = d.get(w * v % 11, 0) + 1
+        positions.append(d)
+    return bounds(positions, 11, 0)
+
+
+def digits_of(weights, p, allowed=None):
+    """One position per weight; allowed[i] lists the digits position i may hold (default all)."""
+    out = []
+    for i, w in enumerate(weights):
+        d = {}
+        for x in (allowed or {}).get(i, range(10)):
+            d[x * w % p] = d.get(x * w % p, 0) + 1
+        out.append(d)
+    return out
+
+
+# Schemes whose check characters name the remainder. A regex for the language gives one, no
+# larger, for any narrower language that allows fewer characters at some positions: intersect each
+# character class at those positions (the length is fixed, so every symbol has its position). So
+# the bound for a narrowing is a bound for the scheme; the narrowings below are the best of a few
+# tried. A check letter is one more position, each letter adding minus its residue; two check
+# digits are narrowed to 01 to 89 without a final 0, which makes the two positions independent.
+
+def dni():
+    """8 digits, then a letter for the number mod 23 (narrowed to DNIs: no X, Y or Z first)."""
+    pos = digits_of([pow(10, 7 - i, 23) for i in range(8)], 23)
+    return bounds(pos + [{-r % 23: 1 for r in range(23)}], 23, 0)
+
+
+def hetu():
+    """9 digits, then a character for the number mod 31; narrowed to dates that exist in every
+    month (days 01-08, 11-18, 21-28 of January to September), one century sign, and numbers
+    010 to 899 without a 0 in the middle."""
+    allowed = {0: range(3), 1: range(1, 9), 2: [0], 3: range(1, 10), 6: range(9), 7: range(1, 10)}
+    pos = digits_of([pow(10, 8 - i, 31) for i in range(9)], 31, allowed)
+    return bounds(pos + [{-r % 31: 1 for r in range(31)}], 31, 0)
+
+
+def ogm():
+    """10 digits, then the number mod 97 as two digits."""
+    pos = digits_of([pow(10, 9 - i, 97) for i in range(10)] + [-10, -1], 97, {10: range(9), 11: range(1, 10)})
+    return bounds(pos, 97, 0)
+
+
+def nir():
+    """13 digits, then 97 minus the number mod 97 (narrowed to no Corsican department)."""
+    pos = digits_of([pow(10, 12 - i, 97) for i in range(13)] + [10, 1], 97, {13: range(9), 14: range(1, 10)})
+    return bounds(pos, 97, 0)
+
+
 def exact(weights, p, base, target):
     """The true minimum size, by search over every sublanguage of every residue class (useful
     subexpressions lie in one class). Tiny cases only: it is exponential in the class sizes."""
@@ -138,3 +197,9 @@ if __name__ == "__main__":
                   ("ES", 20), ("SE", 20), ("PT", 21), ("PL", 24)]:
         lo, up, _ = iban(cc, n)
         print(f"IBAN {cc}, {n + 2} free digits   {lo:12.3g}   {up:12.3g}")
+    lo, up, _ = vin()
+    print(f"VIN, 17 characters mod 11   {math.ceil(lo):12,}   {up:12,}")
+    for name, f in [("DNI or NIE, mod 23", dni), ("HETU, mod 31", hetu), ("OGM-VCS, mod 97", ogm),
+                    ("NIR, mod 97", nir)]:
+        lo, up, _ = f()
+        print(f"{name}   {math.ceil(lo):12,}   {up:12,}")

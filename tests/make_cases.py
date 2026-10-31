@@ -7,6 +7,7 @@ import sys
 
 sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parent.parent))
 from rexsum.check import candidates, complete  # noqa: E402
+from rexsum.registers import LETTERS  # noqa: E402
 from rexsum.specs import SPECS  # noqa: E402
 from boundary import cases as boundary  # noqa: E402
 
@@ -15,8 +16,9 @@ cases = {}
 edges = boundary()
 for sp, check in SPECS:
     valid = []
+    alpha = sp.alphabet + "".join(c for c in LETTERS if c not in sp.alphabet) if sp.check else sp.alphabet
     for s in candidates(sp, rng, 4000):
-        t = complete(s, check, sp.alphabet)
+        t = complete(s, check, alpha)
         if t and t not in valid:
             valid.append(t)
         if len(valid) >= 150:

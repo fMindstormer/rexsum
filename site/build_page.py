@@ -37,7 +37,9 @@ README_TITLES = {
     "upca": "UPC-A", "ean13": "EAN-13", "isbn13": "ISBN-13", "gtin14": "GTIN-14", "aba": "ABA routing number",
     "isbn10": "ISBN-10", "issn": "ISSN", "bsn": "BSN (Dutch elfproef)", "iban_de": "IBAN, Germany",
     "iban_nl": "IBAN, Netherlands", "iban_gb": "IBAN, United Kingdom", "iban_fr": "IBAN, France",
-    "iban": "IBAN, any country (89)", "lei": "LEI (Legal Entity Identifier)",
+    "iban": "IBAN, any country (89)", "lei": "LEI (Legal Entity Identifier)", "rf": "RF creditor reference",
+    "vin": "VIN (check digit)", "dni": "Spanish DNI or NIE", "hetu": "Finnish HETU",
+    "ogm": "Belgian structured communication", "nir": "French NIR",
 }
 
 CONSTRUCTION = {"cyclic": "period-first elimination", "cyclic, any length": "period-first elimination",
@@ -46,6 +48,9 @@ facts["iban_de"] = f"{lib['iban_de']['length']:,}"
 facts["iban_de_groups"] = str(lib["iban_de"]["components"]["97"]["groups"])
 facts["lei"] = f"{lib['lei']['length']:,}"
 facts["iban_any"] = f"{lib['iban']['length']:,}"
+facts["vin"] = f"{lib['vin']['length']:,}"
+for _name in ("rf", "dni", "hetu", "ogm", "nir"):
+    facts[_name] = f"{lib[_name]['length']:,}"
 
 
 def fmt(n):

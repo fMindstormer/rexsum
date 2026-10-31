@@ -47,6 +47,24 @@ def test_known_numbers():
     assert rx["lei"].fullmatch("5493001KJTIIGC8Y1R12")
     assert not rx["lei"].fullmatch("506700GE1G29325QX336")              # last two swapped
     assert not rx["lei"].fullmatch("506700ge1g29325qx363")
+    assert rx["rf"].fullmatch("RF18539007547034")
+    assert rx["rf"].fullmatch("RF185390075470Y")
+    assert not rx["rf"].fullmatch("RF17539007547034")
+    assert rx["vin"].fullmatch("1M8GDM9AXKP042788")
+    assert rx["vin"].fullmatch("5YJSA1DG9DFP14705")
+    assert not rx["vin"].fullmatch("1M8GDM9A0KP042788")                # check digit 0, not X
+    assert not rx["vin"].fullmatch("1m8gdm9axkp042788")
+    assert rx["dni"].fullmatch("54362315K")
+    assert rx["dni"].fullmatch("X2482300W")                            # an NIE
+    assert not rx["dni"].fullmatch("54362315Z")
+    assert rx["hetu"].fullmatch("131052-308T")
+    assert not rx["hetu"].fullmatch("131052-308U")
+    assert not rx["hetu"].fullmatch("310252-308Y")                     # 31 February
+    assert rx["ogm"].fullmatch("010806817183")
+    assert not rx["ogm"].fullmatch("010806817180")
+    assert rx["nir"].fullmatch("295109912611193")
+    assert rx["nir"].fullmatch("253072A07300443")                      # Corsica
+    assert not rx["nir"].fullmatch("253072C07300443")
 
 
 @pytest.mark.parametrize("cc", sorted(IBAN_LAYOUTS))
@@ -62,6 +80,61 @@ def test_small_scheme_compiles_and_is_correct():
     r = compile_spec(sp)
     assert r["length"] == LIB["ean8"]["length"]
     assert verify(sp, check, r["pattern"], k=2000)["bad"] == 0
+
+
+def test_weighted_sums_in_registers():
+    """Random weighted sums, every string of each: the register machine agrees with the sum."""
+    import itertools
+    from rexsum.registers import cls, weighted
+    rng = random.Random(3)
+    for _ in range(120):
+        n = rng.randint(1, 6)
+        m = rng.randint(2, n + 1)
+        alpha = "".join(rng.sample("0123456789AX", rng.randint(1, 4)))
+        table = {(j, c): rng.randrange(-3 * m, 3 * m) for j in range(n)
+                 for c in rng.sample(alpha, rng.randint(1, len(alpha)))}
+        target = rng.randrange(m)
+        body, _ = weighted(n, m, lambda j, c: table.get((j, c)), alpha, target)
+        fmt = "".join(cls("".join(c for c in alpha if (j, c) in table)) for j in range(n))
+        rx = re.compile(python_pattern(f"(?={fmt}$){body}{fmt}"))
+        for t in itertools.islice(itertools.product(alpha, repeat=n), 2000):
+            s = "".join(t)
+            want = all(k in table for k in enumerate(s)) and sum(table[k] for k in enumerate(s)) % m == target
+            assert (rx.fullmatch(s) is not None) == want, (n, m, table, target, s)
+
+
+def test_weighted_sums_in_two_registers():
+    """Moduli too large for one register: every K that fits, every string, and a check that names
+    the remainder at the end."""
+    import itertools
+    from rexsum.registers import Pair, cls
+    rng = random.Random(5)
+    for _ in range(60):
+        n = rng.randint(3, 6)
+        m = rng.randint(n + 2, (n + 1) ** 2)
+        alpha = "".join(rng.sample("0123456789AX", rng.randint(2, 4)))
+        table = {(j, c): rng.randrange(-2 * m, 2 * m) for j in range(n - 1)
+                 for c in rng.sample(alpha, rng.randint(1, len(alpha)))}
+        table.update({(n - 1, c): 0 for c in alpha})
+        names = {r: rng.choice(alpha) if rng.random() < 0.8 else None for r in range(m)}
+        target = rng.randrange(m)
+        fmt = "".join(cls("".join(c for c in alpha if (j, c) in table)) for j in range(n))
+        for K in [K for K in range(2, min(n + 1, m - 1) + 1) if (m - 1) // K <= n]:
+            for named in (False, True):
+                p = Pair(n, m, K)
+                for j in range(n):
+                    by = {}
+                    for c in alpha:
+                        by.setdefault(table[j, c] % m, []).append(c) if (j, c) in table else None
+                    p.add(j, {t: "".join(cs) for t, cs in by.items()})
+                tail = p.accept_table(lambda r: names[r] and p.ends(names[r])) if named else p.accept(target)
+                rx = re.compile(python_pattern(f"(?={fmt}$)" + "".join(p.parts) + tail + fmt))
+                for t in itertools.islice(itertools.product(alpha, repeat=n), 1000):
+                    s = "".join(t)
+                    ok = all(k in table for k in enumerate(s))
+                    r = sum(table[k] for k in enumerate(s)) % m if ok else None
+                    want = ok and (names[r] is not None and s.endswith(names[r]) if named else r == target)
+                    assert (rx.fullmatch(s) is not None) == want, (n, m, K, table, s)
 
 
 def test_regex_simplifications():
@@ -111,7 +184,8 @@ def test_html_export_keyboard():
     from rexsum.__main__ import main
     import contextlib
     import io
-    for name, numeric in [("card", True), ("isbn10", False), ("issn", False), ("iban_de", False), ("lei", False)]:
+    for name, numeric in [("card", True), ("isbn10", False), ("issn", False), ("iban_de", False), ("lei", False),
+                          ("rf", False), ("vin", False), ("dni", False), ("ogm", True), ("nir", False)]:
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
             main([name, "--html"])

@@ -61,13 +61,98 @@ def lei_candidates(sp, rng, k):
     return out
 
 
+def rf_candidates(sp, rng, k):
+    """RF creditor references of every length (and one too long), half of them digits only,
+    about a fifth with the right check digits, and strings of other shapes."""
+    out = []
+    for _ in range(k):
+        alpha = DIGITS if rng.random() < 0.5 else DIGITS + LETTERS
+        ref = "".join(rng.choice(alpha) for _ in range(rng.randint(1, 22)))
+        if rng.random() < 0.2:
+            kk = 98 - int("".join(str(int(c, 36)) for c in ref + "RF00")) % 97
+        else:
+            kk = rng.randrange(100)
+        out.append(f"RF{kk:02d}{ref}")
+    for _ in range(k // 10):
+        out.append("".join(rng.choice(sp.alphabet) for _ in range(rng.randrange(4, 27))))
+    return out
+
+
+def vin_candidates(sp, rng, k):
+    """VINs, about a tenth with the right check digit, some with I, O or Q, and strings of other
+    shapes."""
+    from .specs import VIN_VALUE, VIN_WEIGHTS
+    chars = "".join(VIN_VALUE)
+    out = []
+    for _ in range(k):
+        s = [rng.choice(chars) for _ in range(17)]
+        if rng.random() < 0.1:
+            t = sum(w * VIN_VALUE[c] for i, (w, c) in enumerate(zip(VIN_WEIGHTS, s)) if i != 8) % 11
+            s[8] = "X" if t == 10 else str(t)
+        else:
+            s[8] = rng.choice(DIGITS + "X")
+        if rng.random() < 0.05:
+            s[rng.randrange(17)] = rng.choice("IOQ")
+        out.append("".join(s))
+    for _ in range(k // 10):
+        out.append("".join(rng.choice(sp.alphabet) for _ in range(rng.randrange(4, 25))))
+    return out
+
+
+def _dni(rng):
+    return rng.choice(DIGITS + "XYZ") + "".join(rng.choice(DIGITS) for _ in range(7)) + rng.choice(LETTERS)
+
+
+def _hetu(rng):
+    day, month = (rng.randint(1, 31), rng.randint(1, 12)) if rng.random() < 0.9 else (rng.randint(0, 39), rng.randint(0, 19))
+    if rng.random() < 0.1:
+        day, month = 29, 2
+    return (f"{day:02d}{month:02d}{rng.randrange(100):02d}{rng.choice('+-YXWVUABCDEFGZ')}{rng.randrange(1000):03d}"
+            + rng.choice(DIGITS + LETTERS))
+
+
+def _nir(rng):
+    s = [rng.choice(DIGITS) for _ in range(15)]
+    if rng.random() < 0.15:
+        s[5:7] = [rng.choice("2223"), rng.choice("AABC")]
+    return "".join(s)
+
+
+SAMPLES = {"dni": _dni, "hetu": _hetu, "ogm": lambda rng: "".join(rng.choice(DIGITS) for _ in range(12)),
+           "nir": _nir}
+
+
+def check_candidates(sp, rng, k):
+    """Strings shaped like the format, about a fifth given the right check characters, some
+    with one character changed, and strings of other shapes."""
+    from .pipeline import contribution
+    f = contribution(sp)
+    out = []
+    for _ in range(k):
+        s = SAMPLES[sp.name](rng)
+        if rng.random() < 0.2:
+            want = sp.check(sum(f(i, c) or 0 for i, c in enumerate(s)) % sp.m)
+            s = s[:-len(want)] + want
+        if rng.random() < 0.05:
+            i = rng.randrange(len(s))
+            s = s[:i] + rng.choice(DIGITS + LETTERS + "-+") + s[i + 1:]
+        out.append(s)
+    for _ in range(k // 10):
+        out.append("".join(rng.choice(DIGITS + LETTERS) for _ in range(rng.randrange(4, 20))))
+    return out
+
+
 def candidates(sp, rng, k):
     """Random strings shaped like the format (about a tenth valid), strings with one character
     changed, and strings of other lengths."""
     if sp.kind == "registers":
         if sp.cc:
             return iban_candidates(sp, rng, k)
-        return iban_any_candidates(sp, rng, k) if sp.name == "iban" else lei_candidates(sp, rng, k)
+        return {"iban": iban_any_candidates, "lei": lei_candidates, "rf": rf_candidates}[sp.name](sp, rng, k)
+    if sp.name == "vin":
+        return vin_candidates(sp, rng, k)
+    if sp.check:
+        return check_candidates(sp, rng, k)
     alpha = sp.alphabet
     fixed = re.fullmatch(r"\\d\{(\d+)\}", sp.fmt) or re.fullmatch(r"\\d\{(\d+)\}\[\\dX\]", sp.fmt)
     lens = list(range(1, 25))

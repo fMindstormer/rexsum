@@ -53,6 +53,18 @@ SCHEMES = {
                "GB82WEST12345698765432", "GB82WEST12345698765433", letters=True),
     "lei": _s("LEI (Legal Entity Identifier)", "18 digits or capitals, then 2 check digits. No spaces.",
               "506700GE1G29325QX363", "506700GE1G29325QX362", letters=True),
+    "rf": _s("RF creditor reference", "RF, 2 check digits, then 1 to 21 digits or capitals: 5 to 25 characters. No spaces.",
+             "RF18539007547034", "RF18539007547035", letters=True),
+    "vin": _s("VIN (vehicle identification number)", "17 digits or capitals, no I, O or Q; the 9th is a check digit or X. North American and Chinese VINs have one; many European VINs do not.",
+              "1M8GDM9AXKP042788", "1M8GDM9AXKP042789", letters=True),
+    "dni": _s("Spanish DNI or NIE", "8 digits, or X, Y or Z and 7 digits, then a check letter. Capitals, no dash.",
+              "54362315K", "54362315Z", letters=True),
+    "hetu": _s("Finnish personal identity code (HETU)", "Date of birth as DDMMYY, a century sign (+, - or A, or one of the newer letters), a 3-digit number, then a check character. Capitals.",
+               "131052-308T", "131052-308U", letters=True),
+    "ogm": _s("Belgian structured communication", "12 digits, the last two a check number (OGM-VCS). Without the +++ and slashes.",
+              "010806817183", "010806817184"),
+    "nir": _s("French social security number (NIR)", "15 digits, the last two a check key; 2A or 2B for Corsica in the 6th and 7th. No spaces.",
+              "295109912611193", "295109912611194", letters=True),
 }
 
 
