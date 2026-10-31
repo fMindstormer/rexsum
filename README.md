@@ -347,9 +347,9 @@ of this runs on every push (`.github/workflows/checks.yml`; latest results in
 `reports/browsers.json`), the native Safari check on a Mac (`reports/safari.txt`).
 
 **Speed.** The first keystroke in a field compiles its pattern. On GitHub's Linux runners
-(`reports/browsers.json`), that first check takes 2 to 93 ms in Chromium (177 ms for ISBN-10)
-and 4 to 159 ms in Firefox (213 ms for ISBN-10); later checks take 0.004 to 1.1 ms in Chromium
-and 0.05 to 3.0 ms in Firefox, growing with the pattern's length. Safari compiles the pattern
+(`reports/browsers.json`), that first check takes 2 to 88 ms in Chromium (186 ms for ISBN-10)
+and 3 to 168 ms in Firefox (207 ms for ISBN-10); later checks take 0.005 to 1.0 ms in Chromium
+and 0.05 to 3.2 ms in Firefox, growing with the pattern's length. Safari compiles the pattern
 again at every keystroke, but quickly: 0.1 to 4.5 ms on an Apple M4 (`reports/safari.txt`). Backtracking regex engines can take exponential time on unlucky inputs.
 Here the slowest of 20 random 1,000-digit inputs took under 1 ms (for Luhn and GTIN, the patterns
 that accept any length; the others reject such lengths at once). That is a measurement on random
@@ -357,7 +357,7 @@ inputs, not a worst-case guarantee.
 
 **Size on the wire.** Servers compress HTML, and the patterns compress well, 8 to 45 times:
 Luhn's 24,465 characters gzip to 542 bytes and the German IBAN's 59,966 to 6.6 kB. GitHub Pages
-sends the demo page, 548 kB with twelve fields, as 49 kB.
+sends the demo page, 548 kB with twelve fields, as 50 kB.
 
 ## How small can a pure regex be?
 
