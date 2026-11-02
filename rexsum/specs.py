@@ -102,9 +102,11 @@ DNI_FORMAT = r"[0-9XYZ]\d{7}[A-HJ-NP-TV-Z]"
 
 
 def _dni_value(i, c):
+    if i == 8:                          # the letter counts minus the remainder it names
+        return -DNI_LETTERS.index(c) if c in DNI_LETTERS else None
     if c in "XYZ":
         return "XYZ".index(c) if i == 0 else None
-    return int(c) if i < 8 else None
+    return int(c) if c.isdigit() else None
 
 
 def dni(s):
@@ -205,8 +207,9 @@ SPECS = [
     (Spec("rf", "RF creditor reference (ISO 11649)", RF_FORMAT, "registers", 97, alphabet=D + LETTERS), rf),
     (Spec("vin", "VIN (Vehicle Identification Number)", VIN_FORMAT, "sums", 11, alphabet=D + LETTERS,
           weights=VIN_WEIGHTS, value=_vin_value), vin),
-    (Spec("dni", "DNI or NIE (Spanish identity number)", DNI_FORMAT, "sums", 23, alphabet=D + "XYZ",
-          weights=[10 ** (7 - i) for i in range(8)] + [0], value=_dni_value, check=lambda r: DNI_LETTERS[r]), dni),
+    (Spec("dni", "DNI or NIE (Spanish identity number)", DNI_FORMAT, "layered", 23,
+          alphabet=D + "".join(sorted(set(DNI_LETTERS))), weights=[10 ** (7 - i) for i in range(8)] + [1],
+          value=_dni_value, check=lambda r: DNI_LETTERS[r]), dni),
     (Spec("hetu", "HETU (Finnish personal identity code)", HETU_FORMAT, "sums", 31,
           weights=[10 ** (8 - i) for i in range(6)] + [0] + [10 ** (9 - i) for i in range(7, 10)] + [0],
           value=lambda i, c: int(c) if c.isdigit() else None, check=lambda r: HETU_CHECK[r]), hetu),

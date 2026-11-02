@@ -160,7 +160,8 @@ class Spec:
     weights: list = field(default_factory=list)    # layered, sums
     value: object = None             # layered, sums: (position, char) -> number or None
     target: int = 0                  # sums: the sum must be this mod m
-    check: object = None             # sums: instead, the input ends with check(sum mod m)
+    check: object = None             # the input ends with check(sum mod m) (sums: checked so; layered: the
+                                     # check characters are in the sum, and this only makes test strings)
     n: int | None = None             # fixed length, if the format fixes it
     cc: str = ""                     # registers: the IBAN's country code (none: every country, or LEI)
     layout: str = ""                 # registers: its BBAN layout, e.g. "8n10n"

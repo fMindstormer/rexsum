@@ -140,7 +140,8 @@ recursively, down to single positions.
 
 This wins for short numbers (EAN-8 drops from 12,203 to 3,971 characters) and for the mod-11
 schemes such as ISBN-10, where every digit adds a different residue so no character classes
-merge.
+merge. It also gives the Spanish DNI or NIE, whose letter names the number mod 23: 140,174
+characters, the largest pure pattern here.
 
 ### 4. For IBAN, turn capture groups into registers
 
@@ -226,32 +227,37 @@ use it. The VIN pattern has 7,025 characters and 33 groups; a pure regex for VIN
 at least 234,939 symbols (`python -m rexsum.bounds`). Every value below the modulus has to fit in
 a register, so the input needs at least modulus − 1 characters.
 
-**Or in two, when the modulus is larger than the input.** A Spanish DNI is 8 digits and a letter
-that names the number mod 23, nine characters in all, so one register cannot hold every
-remainder. Two can: the sum is held as s = Ka + b with b < K, and for mod 97 and K = 10 both
-registers stay at most 9. Adding the residue t has two cases. If s ≥ 97 − t the sum wraps and
-becomes s − (97 − t); otherwise it becomes s + t. Either way it is arithmetic on the digits a
-and b, with a carry or a borrow, and b wraps mod K just as the one-register sum does. Where the
-character alone does not settle which case applies, a group decides first: it captures one
-character if s ≥ 97 − t (compare a, then b, with the tests above) and nothing otherwise. The
+**Or in two, when the modulus is larger than the input.** A Finnish personal identity code
+(HETU) has 11 characters and ends in one that names its 9 digits mod 31, so one register cannot
+hold every remainder. Two can: the sum is held as s = Ka + b with b < K, and for mod 97 and
+K = 10 both registers stay at most 9. Adding the residue t has two cases. If s ≥ 97 − t the sum
+wraps and becomes s − (97 − t); otherwise it becomes s + t. Either way it is arithmetic on the
+digits a and b, with a carry or a borrow, and b wraps mod K just as the one-register sum does.
+Where the character alone does not settle which case applies, a group decides first: it captures
+one character if s ≥ 97 − t (compare a, then b, with the tests above) and nothing otherwise. The
 check characters come last, as an alternation over the possible sums: each sum requires the
 input to end with its own letter or digits. Every K that fits is tried, and the shortest pattern
 is kept.
 
 | Scheme | Modulus | Characters | Pure regex, at least (symbols) |
 |---|---:|---:|---:|
-| Spanish DNI or NIE | 23 | 9,522 | 62,345 |
 | Finnish personal identity code (HETU) | 31 | 11,494 | 45,155 |
 | Belgian structured communication (OGM-VCS) | 97 | 18,276 | 900,343 |
 | French social security number (NIR) | 97 | 23,764 | 5,879,585 |
 
+A pure regex for HETU would need over 300,000 characters, and for the other two the bounds
+rule one out. The Spanish DNI or NIE (mod 23) would take 9,522 characters on two registers, but
+it ships as the pure regex of step 3: its 140,174 characters hold 71,070 symbols, within 14% of
+the 62,345 that any pure regex needs.
+
 The bounds come from the argument in How small can a pure regex be, applied to a narrower
 language where needed. A regex for the scheme yields one, no larger, for any narrowing that
-allows fewer characters at some positions. So the HETU bound counts only dates that exist in
-every month, and the last two bounds narrow the two check digits to 01 to 89 without a final 0,
-which makes them independent positions. The HETU pattern checks the date too, leap years
-included, as python-stdnum does. The mod-11 schemes fit as well: ISBN-10 would shrink from
-91,659 characters to 3,454, ISSN from 16,199 to 7,209 and BSN from 53,594 to 8,239.
+allows fewer characters at some positions. So the DNI bound counts DNIs only, without X, Y or Z
+in front, the HETU bound counts only dates that exist in every month, and the last two narrow
+the two check digits to 01 to 89 without a final 0, which makes them independent positions. The
+HETU pattern checks the date too, leap years included, as python-stdnum does. The mod-11 schemes
+fit as well: ISBN-10 would shrink from 91,659 characters to 3,454, ISSN from 16,199 to 7,209 and
+BSN from 53,594 to 8,239.
 
 **Short inputs: split every register.** An RF creditor reference (ISO 11649), the structured
 payment reference on European invoices, is RF, two check digits, then 1 to 21 digits or
@@ -290,35 +296,35 @@ which is stricter than older JavaScript about what may appear inside a character
 <!-- table -->
 | Scheme | Characters | V8 compile | Median match |
 |---|---:|---:|---:|
-| Luhn, any length | 24,465 | 8 ms | 0.6 µs |
+| Luhn, any length | 24,465 | 7 ms | 0.6 µs |
 | Payment card, 12–19 digits | 24,471 | 6 ms | 0.4 µs |
 | Payment card, 16 digits | 12,602 | 3 ms | 0.6 µs |
-| IMEI (15 digits) | 24,466 | 7 ms | 1.4 µs |
+| IMEI (15 digits) | 24,466 | 7 ms | 1.2 µs |
 | Canadian SIN (9 digits) | 10,379 | 21 ms | 0.2 µs |
-| GTIN, any length | 23,806 | 11 ms | 1.3 µs |
+| GTIN, any length | 23,806 | 11 ms | 1.2 µs |
 | EAN-8 | 3,971 | 4 ms | 0.3 µs |
 | UPC-A | 12,262 | 4 ms | 0.8 µs |
-| EAN-13 | 23,808 | 11 ms | 2.0 µs |
-| ISBN-13 | 23,814 | 11 ms | 1.2 µs |
+| EAN-13 | 23,808 | 11 ms | 1.9 µs |
+| ISBN-13 | 23,814 | 12 ms | 1.3 µs |
 | GTIN-14 | 12,262 | 4 ms | 1.0 µs |
-| ABA routing number | 10,022 | 10 ms | 0.4 µs |
-| ISBN-10 | 91,659 | 87 ms | 3.3 µs |
+| ABA routing number | 10,022 | 11 ms | 0.4 µs |
+| ISBN-10 | 91,659 | 89 ms | 3.5 µs |
 | ISSN | 16,199 | 9 ms | 1.9 µs |
-| BSN (Dutch elfproef) | 53,594 | 41 ms | 2.2 µs |
-| IBAN, Germany | 59,966 | 31 ms | 9.7 µs |
-| IBAN, Netherlands | 49,350 | 23 ms | 7.9 µs |
-| IBAN, United Kingdom | 66,271 | 35 ms | 11 µs |
-| IBAN, France | 107,237 | 62 ms | 18 µs |
-| IBAN, any country (89) | 178,241 | 147 ms | 22 µs |
-| LEI (Legal Entity Identifier) | 85,446 | 42 ms | 14 µs |
-| RF creditor reference | 54,309 | 19 ms | 18 µs |
+| BSN (Dutch elfproef) | 53,594 | 44 ms | 2.3 µs |
+| IBAN, Germany | 59,966 | 32 ms | 9.2 µs |
+| IBAN, Netherlands | 49,350 | 24 ms | 7.5 µs |
+| IBAN, United Kingdom | 66,271 | 34 ms | 10 µs |
+| IBAN, France | 107,237 | 65 ms | 17 µs |
+| IBAN, any country (89) | 178,241 | 160 ms | 22 µs |
+| LEI (Legal Entity Identifier) | 85,446 | 46 ms | 13 µs |
+| RF creditor reference | 54,309 | 19 ms | 19 µs |
 | VIN (check digit) | 7,025 | 3 ms | 3.7 µs |
-| Spanish DNI or NIE | 9,522 | 2 ms | 1.8 µs |
-| Finnish HETU | 11,494 | 3 ms | 2.2 µs |
-| Belgian structured communication | 18,276 | 6 ms | 3.3 µs |
-| French NIR | 23,764 | 8 ms | 5.5 µs |
+| Spanish DNI or NIE | 140,174 | 135 ms | 9.6 µs |
+| Finnish HETU | 11,494 | 4 ms | 2.6 µs |
+| Belgian structured communication | 18,276 | 8 ms | 3.8 µs |
+| French NIR | 23,764 | 11 ms | 6.8 µs |
 
-V8 13.6.233.10-node.24 in Node 24.6.0, Apple M4, measured 2026-10-31 (`speed.json`).
+V8 13.6.233.10-node.24 in Node 24.6.0, Apple M4, measured 2026-11-02 (`speed.json`).
 <!-- /table -->
 
 ### Do they hold up in real browsers?
@@ -400,6 +406,7 @@ rounded up to whole symbols. For Germany it is 11168428237247836984769 / 2010981
 | 6-digit multiples of 97 | 4,687 | 5,940 |
 | 8-digit multiples of 97 | 39,652 | 61,340 |
 | German IBAN (20 free digits) | 55,537,202 | 116,317,552 |
+| Spanish DNI (the shipped pattern) | 62,345 | 71,070 |
 
 The construction's 116 million symbols come to about 176 million characters once the `|` and
 `(?:` `)` are added; the shipped mod-97 patterns of 4, 6 and 8 digits are 524, 9,653 and
@@ -499,7 +506,7 @@ the lower bound for pure regexes in the form given above, which I have not seen 
 - **A register holds at most the input's length.** One register for a weighted sum needs an
   input at least one shorter than the modulus, and two need about its square root. Horner's rule
   needs 13 characters with whole registers and 5 with split ones. The shipped mod-11 patterns
-  stay pure, though registers would make them 2 to 26 times smaller.
+  and the DNI stay pure, though registers would make them 2 to 26 times smaller.
 - **DNI, HETU, OGM-VCS and NIR take the compact form:** capitals, no spaces, no dash before a
   DNI's letter, and for the Belgian communication 12 digits without the `+++` and slashes. The
   HETU's own `-`, `+` or letter in the middle is its century sign and stays. The NIR pattern

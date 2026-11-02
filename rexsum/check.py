@@ -131,8 +131,8 @@ def check_candidates(sp, rng, k):
     for _ in range(k):
         s = SAMPLES[sp.name](rng)
         if rng.random() < 0.2:
-            want = sp.check(sum(f(i, c) or 0 for i, c in enumerate(s)) % sp.m)
-            s = s[:-len(want)] + want
+            k = len(sp.check(0))        # the check characters, which end the input
+            s = s[:-k] + sp.check(sum(f(i, c) or 0 for i, c in enumerate(s[:-k])) % sp.m)
         if rng.random() < 0.05:
             i = rng.randrange(len(s))
             s = s[:i] + rng.choice(DIGITS + LETTERS + "-+") + s[i + 1:]
