@@ -315,7 +315,7 @@ footer { color: var(--ink-3); font-size: 0.88rem; border-top: 1px solid var(--ru
     <div class="limits">
       <div class="limit"><b>Mod 97 as a pure regex</b><p>Eight-digit multiples of 97 already need 100,133 characters, and any pure regex for a German IBAN needs at least 55 million (the README has the proof). The IBAN patterns here use capture groups instead, and accept only the electronic form: capitals, no spaces.</p></div>
       <div class="limit"><b>Damm check digit</b><p>Its table is a quasigroup, not a group, so nothing splits. The direct conversion gives 1,398,101 characters. Capture registers should handle it as they handle IBAN; not tried yet.</p></div>
-      <div class="limit"><b>The Spanish DNI is the largest pure regex</b><p>Mod 23 is prime, so its pattern is one piece of 140,174 characters; ISBN-10's, mod 11, has 91,659. The first keystroke compiles it: about 0.2 seconds for ISBN-10 in Chromium on GitHub's Linux runners.</p></div>
+      <div class="limit"><b>The Spanish DNI is the largest pure regex</b><p>Mod 23 is prime, so its pattern is one piece of 140,174 characters; ISBN-10's, mod 11, has 91,659. The first keystroke compiles it: about 0.1 seconds in Chromium on GitHub's Linux runners, and 0.16 for ISBN-10's.</p></div>
     </div>
   </section>
 
