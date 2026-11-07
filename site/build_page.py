@@ -1,5 +1,6 @@
-"""Build the demo page (site/index.html), one standalone example per scheme (site/examples/), and
-the README's results table, from patterns.json and speed.json."""
+"""Build the demo page (site/index.html), one standalone example per scheme (site/examples/), the
+generator page (site/generator.html) and the README's results table, from patterns.json and
+speed.json."""
 import html
 import json
 import re
@@ -120,4 +121,11 @@ readme = (ROOT / "README.md").read_text()
 readme = re.sub(r"(<!-- table -->\n).*?(\n<!-- /table -->)", lambda m: m.group(1) + "\n".join(table) + m.group(2),
                 readme, flags=re.S)
 (ROOT / "README.md").write_text(readme)
-print(f"site/index.html: {len(page) / 1000:.0f} kB, {len(lib)} examples in site/examples/")
+# the generator: the shipped schemes' names and samples; the page fetches the patterns themselves
+schemes = [{"name": n, "title": SCHEMES[n]["title"], "shape": SCHEMES[n]["shape"], "valid": SCHEMES[n]["valid"],
+            "letters": SCHEMES[n]["letters"], "length": r["length"]} for n, r in lib.items()]
+gen = (ROOT / "site" / "generator_template.html").read_text()
+gen = gen.replace("{{SCHEMES}}", json.dumps(schemes, ensure_ascii=False).replace("</", "<\\/"))
+(ROOT / "site" / "generator.html").write_text(gen)
+
+print(f"site/index.html: {len(page) / 1000:.0f} kB, {len(lib)} examples in site/examples/, site/generator.html")

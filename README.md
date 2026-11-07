@@ -32,7 +32,9 @@ Every shipped pattern comes as a standalone page in [`site/examples/`](site/exam
 sample, and CSS that colours the field by `:valid` and `:invalid`. No script, no external files.
 Open one from disk, turn JavaScript off, and change the last character.
 
-To put a pattern into your own form:
+To put a pattern into your own form, the
+[generator](https://fmindstormer.github.io/rexsum/generator.html) makes the `<input>` in the
+browser, for a shipped scheme or weights of your own. Or from a checkout:
 
 ```sh
 python -m rexsum --list                     # the shipped schemes
@@ -528,9 +530,12 @@ rexsum/iban_registry.py  every country's IBAN layout, from SWIFT's IBAN Registry
 rexsum/specs.py      the shipped schemes;  rexsum/schemes.py  reference checkers and experiments
 rexsum/meta.py       labels, formats, samples and keyboards, shared by the CLI, page and examples
 rexsum/bounds.py     how small a pure regex can be: the lower bound and an exhaustive check
+js/compile.mjs       `rexsum custom` in JavaScript, for the generator and the npm package (same output)
+js/                  the npm package: the patterns as named exports (js/build.mjs writes them)
+pyproject.toml       the pip package: the command line tool, with patterns.json inside
 build.py             compile and test everything, write patterns.json (nothing is written on a mismatch)
 tests/               pytest, edge cases, V8, JavaScriptCore, the browser and Safari checks
-site/                the demo page, the standalone examples and their builder, the recording script
+site/                the demo page, the generator, the standalone examples and their builder, the recording script
 reports/             the native Safari check's latest output
 .github/workflows/   checks on every push; Pages; releases from tags
 ```

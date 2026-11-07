@@ -2,7 +2,9 @@ name: Release
 
 # Push a tag like v0.1.0. The bundle is made from the tagged tree, extracted, and tested as
 # extracted: pytest, the generated files, V8, and the HTML pattern checks in Chromium, Firefox and
-# WebKit with JavaScript off. Only if every check passes is the release published, with SHA-256 sums.
+# WebKit with JavaScript off. Only if every check passes is the release published, with SHA-256 sums,
+# and the packages built from the bundle go to PyPI and npm (trusted publishing: PyPI and npm trust
+# this workflow, so no token is stored; the environments "pypi" and "npm" name it there).
 on:
   push:
     tags: ["v*"]
@@ -27,6 +29,8 @@ jobs:
         run: |
           V="${TAG#v}"
           echo "V=$V" >> "$GITHUB_ENV"
+          test "$V" = "$(python -c 'import rexsum; print(rexsum.__version__)')" || { echo "the tag is not rexsum/__init__.py's version"; exit 1; }
+          test "$V" = "$(node -p 'require("./js/package.json").version')" || { echo "the tag is not js/package.json's version"; exit 1; }
           mkdir dist
           git archive --format=tar --prefix="rexsum-$V/" HEAD | gzip -n > "dist/rexsum-$V.tar.gz"
           mkdir x && tar -xzf "dist/rexsum-$V.tar.gz" -C x
@@ -40,6 +44,20 @@ jobs:
           python -m pytest tests -q -p no:cacheprovider
           node tests/speed.mjs patterns.json tests/cases.json
           python tests/browser.py patterns.json tests/cases.json --report "$GITHUB_WORKSPACE/dist/browser-report.json"
+          python tests/generator.py
+      - name: Packages, from the extracted bundle
+        run: |
+          pip install build
+          python -P -m build --outdir "$GITHUB_WORKSPACE/pydist" "x/rexsum-$V"
+          (cd "x/rexsum-$V/js" && npm pack --pack-destination "$GITHUB_WORKSPACE/npmdist")
+      - uses: actions/upload-artifact@v4
+        with:
+          name: python-packages
+          path: pydist/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: npm-package
+          path: npmdist/
       - name: Assets and notes
         run: |
           cp "x/rexsum-$V/patterns.json" dist/
@@ -63,3 +81,38 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release create "$TAG" dist/* --title "rexsum $TAG" --notes-file notes.md
+
+  pypi:
+    needs: release
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: python-packages
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+
+  npm:
+    needs: release
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+      - run: npm install -g npm@latest      # trusted publishing needs npm 11.5.1 or later
+      - uses: actions/download-artifact@v4
+        with:
+          name: npm-package
+          path: npmdist/
+      - name: Publish, unless this version is on npm already
+        run: |
+          V="${GITHUB_REF_NAME#v}"
+          if [ "$(npm view "rexsum@$V" version 2>/dev/null)" = "$V" ]; then echo "rexsum@$V is on npm already"; exit 0; fi
+          npm publish npmdist/rexsum-"$V".tgz --access public

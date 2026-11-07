@@ -1,0 +1,19 @@
+{
+  "name": "rexsum",
+  "version": "0.2.0",
+  "description": "Checksums (Luhn, IBAN, ISBN, VIN and more) as regexes for the HTML pattern attribute, so forms check them with no JavaScript",
+  "keywords": ["regex", "form-validation", "html", "pattern", "checksum", "check-digit", "luhn", "iban", "isbn"],
+  "homepage": "https://fmindstormer.github.io/rexsum/",
+  "repository": { "type": "git", "url": "git+https://github.com/fMindstormer/rexsum.git", "directory": "js" },
+  "license": "MIT",
+  "author": "Fedir Yudin",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": { "types": "./index.d.ts", "default": "./index.js" },
+    "./compile": { "types": "./compile.d.ts", "default": "./compile.mjs" }
+  },
+  "files": ["index.js", "index.d.ts", "compile.mjs", "compile.d.ts"],
+  "engines": { "node": ">=20" },
+  "scripts": { "prepack": "node build.mjs" }
+}

@@ -1,0 +1,43 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rexsum"
+dynamic = ["version"]
+description = "Compiles checksums (Luhn, IBAN, ISBN, VIN and more) into HTML pattern regexes, so forms check them with no JavaScript"
+readme = "PYPI.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Fedir Yudin" }]
+requires-python = ">=3.10"
+dependencies = []
+keywords = ["regex", "form-validation", "html", "checksum", "check-digit", "iban", "luhn", "automata"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+    "Topic :: Software Development :: Code Generators",
+]
+
+[project.urls]
+Homepage = "https://fmindstormer.github.io/rexsum/"
+Source = "https://github.com/fMindstormer/rexsum"
+Generator = "https://fmindstormer.github.io/rexsum/generator.html"
+
+[project.scripts]
+rexsum = "rexsum.__main__:main"
+
+[tool.hatch.version]
+path = "rexsum/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["rexsum"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"patterns.json" = "rexsum/patterns.json"
+
+[tool.hatch.build.targets.sdist]
+include = ["rexsum/*.py", "patterns.json", "PYPI.md", "LICENSE", "pyproject.toml"]

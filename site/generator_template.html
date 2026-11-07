@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Make an HTML input that checks a check digit with its pattern attribute alone: a shipped scheme (Luhn, IBAN, ISBN, VIN and more) or weights of your own.">
+<title>rexsum generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Azeret+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one column. Choose (a shipped scheme, or weights), adjust the element, then the result: the element to copy and a live field that uses it. */
+:root {
+  --paper: #F3F5F2; --card: #FFFFFF; --ink: #15211C; --ink-2: #47554F; --ink-3: #6A7872;
+  --rule: #D4DCD7; --accent: #1C5B47; --accent-soft: #E1EDE7; --ok: #1D7845; --bad: #B23A2E; --code-bg: #EBEFEC;
+  --display: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono: "Azeret Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #0F1513; --card: #161F1B; --ink: #E2EAE6; --ink-2: #A9B7B0; --ink-3: #85948D;
+  --rule: #29352F; --accent: #7FC6AA; --accent-soft: #1B2C25; --ok: #63C78F; --bad: #F08A7B; --code-bg: #1B2420; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --paper: #0F1513; --card: #161F1B; --ink: #E2EAE6; --ink-2: #A9B7B0; --ink-3: #85948D;
+  --rule: #29352F; --accent: #7FC6AA; --accent-soft: #1B2C25; --ok: #63C78F; --bad: #F08A7B; --code-bg: #1B2420; color-scheme: dark }
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.6 var(--body); }
+.wrap { max-width: 860px; margin: 0 auto; padding-block: 40px 72px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 36px; }
+h1, h2 { font-family: var(--display); margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+h1 { font-size: clamp(2rem, 5.2vw, 3rem); line-height: 1.05; font-weight: 700; }
+h2 { font-size: clamp(1.2rem, 2.6vw, 1.45rem); line-height: 1.2; font-weight: 600; }
+p { margin: 0; max-width: 66ch; }
+.eyebrow { font: 500 0.78rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+.eyebrow a { color: inherit; text-decoration: none; }
+.lede { font-size: 1.1rem; color: var(--ink-2); }
+.stack { display: grid; gap: 14px; min-width: 0; }
+code { font: 0.9em var(--mono); background: var(--code-bg); padding: 0.1em 0.35em; border-radius: 4px; overflow-wrap: anywhere; }
+a { color: var(--accent); }
+
+.panel { background: var(--card); border: 1px solid var(--rule); border-radius: 10px; padding: 18px; display: grid; gap: 16px; min-width: 0; }
+.modes { display: flex; gap: 6px; flex-wrap: wrap; border: 0; padding: 0; margin: 0; }
+.modes label { cursor: pointer; }
+.modes input { position: absolute; opacity: 0; pointer-events: none; }
+.modes span { display: inline-block; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--rule); font-weight: 700; color: var(--ink-2); }
+.modes input:checked + span { background: var(--accent); border-color: var(--accent); color: var(--paper); }
+.modes input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr)); gap: 12px; }
+.ctl { display: grid; gap: 4px; align-content: start; min-width: 0; }
+.ctl > span { font-weight: 700; font-size: 0.92rem; }
+.ctl small, .note { color: var(--ink-3); font-size: 0.85rem; }
+.check { display: flex; gap: 8px; align-items: center; font-weight: 700; font-size: 0.92rem; }
+input[type=text], input[type=number], select, textarea {
+  width: 100%; font: 1rem/1.3 var(--body); color: var(--ink); background: var(--paper);
+  border: 1px solid var(--rule); border-radius: 8px; padding: 9px 11px; min-width: 0; }
+input.mono { font-family: var(--mono); }
+:is(input, select, textarea, button):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+[hidden] { display: none !important; }
+.btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+button { font: inherit; font-weight: 700; border: 0; border-radius: 8px; padding: 9px 16px; cursor: pointer; }
+.primary { background: var(--accent); color: var(--paper); }
+.quiet { background: var(--accent-soft); color: var(--accent); }
+button:disabled { opacity: 0.55; cursor: default; }
+
+textarea#out { font: 0.82rem/1.5 var(--mono); height: 9.5em; resize: vertical; white-space: pre-wrap; word-break: break-all; }
+.info { color: var(--ink-2); font-size: 0.92rem; font-variant-numeric: tabular-nums; }
+.error { color: var(--bad); font-weight: 700; }
+.field { display: grid; gap: 8px; }
+.field input { font: 500 1.12rem/1.2 var(--mono); letter-spacing: 0.06em; border: 2px solid var(--rule); padding: 10px 12px; }
+.field input:valid:not(:placeholder-shown) { border-color: var(--ok); }
+.field input:invalid { border-color: var(--bad); }
+.status { font-size: 0.92rem; min-height: 1.5em; }
+.status::before { color: var(--ink-3); content: "Type a number"; }
+.field input:valid:not(:placeholder-shown) ~ .status::before { content: "\2713  Check digit correct"; color: var(--ok); font-weight: 700; }
+.field input:invalid ~ .status::before { content: "\2717  Wrong check digit, length or character"; color: var(--bad); font-weight: 700; }
+footer { color: var(--ink-3); font-size: 0.88rem; border-top: 1px solid var(--rule); padding-top: 18px; display: grid; gap: 6px; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="stack">
+    <p class="eyebrow"><a href="./">rexsum</a> · generator</p>
+    <h1>Make a field that checks its own check digit</h1>
+    <p class="lede">Pick a scheme, or enter the weights of your own, and copy the <code>&lt;input&gt;</code>. The element needs no script: its <code>pattern</code> attribute does the arithmetic. This page runs a script only to build it, in your browser.</p>
+  </header>
+
+  <form class="panel" id="form" novalidate>
+    <fieldset class="modes" aria-label="What to check">
+      <label><input type="radio" name="mode" value="scheme" checked><span>A shipped scheme</span></label>
+      <label><input type="radio" name="mode" value="custom"><span>Your own weights</span></label>
+    </fieldset>
+
+    <div id="scheme-box" class="row">
+      <label class="ctl" style="grid-column: 1 / -1"><span>Scheme</span>
+        <select id="scheme"></select>
+        <small id="scheme-shape"></small>
+      </label>
+    </div>
+
+    <div id="custom-box" class="stack" hidden>
+      <div class="row">
+        <label class="ctl"><span>Weights</span><input id="weights" class="mono" type="text" value="1, 3" inputmode="text" spellcheck="false"><small>repeating, e.g. 1, 3 or 7, 3, 1</small></label>
+        <label class="ctl"><span>Starting from</span><select id="from"><option value="right">the rightmost digit</option><option value="left">the leftmost digit</option></select></label>
+        <label class="ctl"><span>Sum divisible by</span><input id="mod" type="number" value="10" min="2" max="100" step="1"><small>2 to 100</small></label>
+        <label class="ctl"><span>Length</span><input id="length" type="number" min="2" max="40" step="1" placeholder="any"><small>blank for any number of digits</small></label>
+      </div>
+      <div class="btns"><button type="submit" class="primary" id="compile">Compile</button><button type="button" class="quiet" id="stop" hidden>Stop</button><span class="note" id="custom-note">Luhn is weights 1, 2 with each product's digits summed, so it is a shipped scheme rather than weights.</span></div>
+    </div>
+
+    <div class="row">
+      <label class="ctl"><span>name</span><input id="name" class="mono" type="text" spellcheck="false"></label>
+      <label class="ctl" style="grid-column: span 2"><span>title (shown when the value is invalid)</span><input id="hint" type="text"></label>
+      <label class="check"><input id="required" type="checkbox" checked> required</label>
+    </div>
+  </form>
+
+  <section class="stack" aria-labelledby="result-h">
+    <h2 id="result-h">Your element</h2>
+    <p class="info" id="info" aria-live="polite">Loading the patterns…</p>
+    <textarea id="out" readonly aria-label="The input element" spellcheck="false"></textarea>
+    <div class="btns"><button type="button" class="primary" id="copy" disabled>Copy element</button><button type="button" class="quiet" id="copy-pattern" disabled>Copy pattern only</button></div>
+  </section>
+
+  <section class="stack" aria-labelledby="try-h">
+    <h2 id="try-h">Try it</h2>
+    <div class="field" id="preview"></div>
+  </section>
+
+  <footer>
+    <p>The same in a terminal, from the repository: <code>python -m rexsum card --html</code>, or <code>python -m rexsum custom --weights 1,3 --mod 10 --length 13 --html</code>.</p>
+    <p>Weights of your own compile with the same constructions as the Python, to the same pattern, character for character. Patterns over a million characters are given up. <a href="https://github.com/fMindstormer/rexsum">Source and method</a>.</p>
+  </footer>
+</div>
+
+<script type="application/json" id="schemes">{{SCHEMES}}</script>
+<script type="module">
+const SCHEMES = JSON.parse(document.getElementById("schemes").textContent);
+const $ = (id) => document.getElementById(id);
+const esc = (s) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#x27;" })[c]);
+const fmt = (n) => n.toLocaleString("en");
+const BUDGET = 1_000_000, SECONDS = 60;
+
+let patterns = null;
+const loadPatterns = () => (patterns ??= fetch("patterns.json").then((r) => {
+  if (!r.ok) throw new Error(`patterns.json: HTTP ${r.status}`);
+  return r.json();
+}));
+
+let current = null;    // { pattern, letters, sample, info }
+let stop = null;       // ends the compile in progress
+
+for (const s of SCHEMES) $("scheme").add(new Option(`${s.title} (${fmt(s.length)} characters)`, s.name));
+
+const mode = () => document.querySelector("input[name=mode]:checked").value;
+
+function element() {
+  const a = [];
+  const name = $("name").value.trim(), hint = $("hint").value.trim();
+  if (name) a.push(`name="${esc(name)}"`);
+  if ($("required").checked) a.push("required");
+  a.push(current.letters ? 'autocapitalize="characters" spellcheck="false"' : 'inputmode="numeric"');
+  if (hint) a.push(`title="${esc(hint)}"`);
+  return `<input ${a.join(" ")} pattern="${esc(current.pattern)}">`;
+}
+
+async function gzipSize(s) {
+  try {
+    const z = new Blob([s]).stream().pipeThrough(new CompressionStream("gzip"));
+    return (await new Response(z).arrayBuffer()).byteLength;
+  } catch { return null; }
+}
+
+async function show() {
+  if (!current) return;
+  const el = element();
+  $("out").value = el;
+  $("copy").disabled = $("copy-pattern").disabled = false;
+  const z = await gzipSize(el);
+  $("info").textContent = `${fmt(el.length)} characters${z ? `, ${fmt(z)} bytes gzipped` : ""}. ${current.info}`;
+  $("info").classList.remove("error");
+  $("preview").innerHTML = `${el}<p class="status"></p>`;
+  const input = $("preview").querySelector("input");
+  input.placeholder = " ";
+  input.setAttribute("aria-label", "Try the element");
+  input.value = current.sample ?? "";
+}
+
+function fail(msg) {
+  $("info").textContent = msg;
+  $("info").classList.add("error");
+}
+
+async function pickScheme() {
+  const s = SCHEMES.find((x) => x.name === $("scheme").value);
+  $("scheme-shape").textContent = s.shape;
+  $("name").value = s.name;
+  $("hint").value = s.shape;
+  history.replaceState(null, "", `#${s.name}`);
+  try {
+    const lib = await loadPatterns();
+    if ($("scheme").value !== s.name || mode() !== "scheme") return;
+    current = { pattern: lib[s.name].pattern, letters: s.letters, sample: s.valid,
+                info: `The pattern is the one rexsum ${s.name} prints. The field below holds a valid example: change its last character.` };
+    show();
+  } catch (e) { fail(`Could not load the patterns (${e.message}).`); }
+}
+
+function readCustom() {
+  const ws = $("weights").value.split(/[\s,;]+/).filter(Boolean);
+  if (!ws.length || ws.length > 20 || !ws.every((w) => /^-?\d{1,4}$/.test(w))) throw new Error("Weights: 1 to 20 whole numbers, separated by commas.");
+  const m = Number($("mod").value);
+  if (!Number.isInteger(m) || m < 2 || m > 100) throw new Error("The modulus: a whole number from 2 to 100.");
+  const L = $("length").value.trim() === "" ? null : Number($("length").value);
+  if (L !== null && !(Number.isInteger(L) && L >= 2 && L <= 40)) throw new Error("The length: 2 to 40 digits, or blank for any.");
+  return { weights: ws.map(Number), mod: m, from: $("from").value, length: L };
+}
+
+// a valid input for the preview: random digits that pass the check, if any are found quickly
+function sampleFor({ weights, mod, from, length }) {
+  const k = weights.length;
+  for (let t = 0; t < 20000; t++) {
+    const n = length ?? 8 + (t % 9);
+    const ds = Array.from({ length: n }, () => Math.floor(Math.random() * 10));
+    const sum = ds.reduce((a, d, i) => a + weights[(from === "right" ? n - 1 - i : i) % k] * d, 0);
+    if (((sum % mod) + mod) % mod === 0) return ds.join("");
+  }
+  return "";
+}
+
+function compileInWorker(opts) {
+  return new Promise((resolve, reject) => {
+    const w = new Worker("generator-worker.mjs", { type: "module" });
+    const end = (f, x) => { clearTimeout(timer); w.terminate(); stop = null; f(x); };
+    const timer = setTimeout(() => end(reject, new Error(`Gave up after ${SECONDS} seconds.`)), SECONDS * 1000);
+    w.onmessage = (e) => (e.data.error ? end(reject, new Error(e.data.error)) : end(resolve, e.data.result));
+    w.onerror = (e) => (e.preventDefault(), end(reject, new Error(e.message || "The compiler stopped.")));
+    stop = () => end(reject, new Error("Stopped."));
+    w.postMessage({ ...opts, budget: BUDGET });
+  });
+}
+
+async function compileCustom() {
+  let opts;
+  try { opts = readCustom(); } catch (e) { return fail(e.message); }
+  stop?.();
+  const desc = `${opts.length ? `${opts.length} digits` : "Digits"}, weights ${opts.weights.join(", ")} from the ${opts.from}, the weighted sum divisible by ${opts.mod}.`;
+  $("hint").value = desc;
+  if (!$("name").value.trim() || SCHEMES.some((s) => s.name === $("name").value)) $("name").value = "number";
+  history.replaceState(null, "", `#weights=${opts.weights.join(",")}&mod=${opts.mod}&from=${opts.from}${opts.length ? `&length=${opts.length}` : ""}`);
+  $("info").textContent = "Compiling…";
+  $("info").classList.remove("error");
+  $("compile").disabled = true;
+  $("stop").hidden = false;
+  const t0 = performance.now();
+  try {
+    const r = await compileInWorker(opts);
+    const secs = ((performance.now() - t0) / 1000).toFixed(1);
+    const parts = Object.entries(r.components).map(([q, c]) => `mod ${q}: ${fmt(c.length)}`).join(", ");
+    const cli = `rexsum custom --weights ${opts.weights.join(",")} --mod ${opts.mod} --from ${opts.from}${opts.length ? ` --length ${opts.length}` : ""}`;
+    current = { pattern: r.pattern, letters: false, sample: sampleFor(opts), info: `Compiled in ${secs} s (${parts}): the pattern ${cli} prints.` };
+    show();
+  } catch (e) {
+    fail(`${e.message} ${/over|Gave up|memory/i.test(e.message) ? "This one needs a larger pattern than a browser should carry; try a shorter length or a smaller modulus." : ""}`.trim());
+  } finally {
+    $("compile").disabled = false;
+    $("stop").hidden = true;
+  }
+}
+
+function setMode(m) {
+  document.querySelector(`input[name=mode][value=${m}]`).checked = true;
+  $("scheme-box").hidden = m !== "scheme";
+  $("custom-box").hidden = m !== "custom";
+  current = null;
+  $("copy").disabled = $("copy-pattern").disabled = true;
+  if (m === "scheme") pickScheme();
+  else compileCustom();
+}
+
+async function copy(text, btn) {
+  const label = btn.textContent;
+  const done = (s) => { btn.textContent = s; setTimeout(() => { btn.textContent = label; }, 1600); };
+  try { await navigator.clipboard.writeText(text); done("Copied"); }
+  catch {
+    $("out").select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch { ok = false; }
+    done(ok ? "Copied" : "Copy failed: select the text");
+  }
+}
+
+document.querySelectorAll("input[name=mode]").forEach((r) => r.addEventListener("change", () => setMode(r.value)));
+$("scheme").addEventListener("change", pickScheme);
+$("form").addEventListener("submit", (e) => { e.preventDefault(); if (mode() === "custom") compileCustom(); });
+$("stop").addEventListener("click", () => stop?.());
+for (const id of ["name", "hint", "required"]) $(id).addEventListener("input", show);
+$("copy").addEventListener("click", () => copy($("out").value, $("copy")));
+$("copy-pattern").addEventListener("click", () => copy(current.pattern, $("copy-pattern")));
+
+// the address says what to show: #card, or #weights=1,3&mod=10&from=right&length=13
+const h = decodeURIComponent(location.hash.slice(1));
+if (h.startsWith("weights=")) {
+  const p = new URLSearchParams(h);
+  $("weights").value = p.get("weights").split(",").join(", ");
+  $("mod").value = p.get("mod") ?? "10";
+  $("from").value = p.get("from") === "left" ? "left" : "right";
+  $("length").value = p.get("length") ?? "";
+  setMode("custom");
+} else {
+  $("scheme").value = SCHEMES.some((s) => s.name === h) ? h : "card";
+  setMode("scheme");
+}
+</script>
+</body>
+</html>

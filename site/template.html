@@ -97,7 +97,7 @@ footer { color: var(--ink-3); font-size: 0.88rem; border-top: 1px solid var(--ru
 
   <section class="stack" aria-labelledby="try">
     <h2 id="try">Try them</h2>
-    <p class="hint">Each field holds a valid example. Change the payment card's last digit from 1 to 2 and the browser rejects it, using only the <code>pattern</code> attribute. A check digit catches any single wrong digit, but not every swap of neighbours: Luhn misses 09 ↔ 90, so 4009000000000003 and 4090000000000003 both pass. <b>Download HTML</b> gives a standalone page with no script, to open from disk.</p>
+    <p class="hint">Each field holds a valid example. Change the payment card's last digit from 1 to 2 and the browser rejects it, using only the <code>pattern</code> attribute. A check digit catches any single wrong digit, but not every swap of neighbours: Luhn misses 09 ↔ 90, so 4009000000000003 and 4090000000000003 both pass. <b>Download HTML</b> gives a standalone page with no script, to open from disk. The <a href="generator.html">generator</a> makes the <code>&lt;input&gt;</code> for any of them, or for weights of your own.</p>
     <form class="fields" onsubmit="return false" novalidate><!--CARDS-->
     </form>
   </section>
@@ -170,7 +170,7 @@ footer { color: var(--ink-3); font-size: 0.88rem; border-top: 1px solid var(--ru
   </section>
 
   <footer>
-    <p>rexsum compiles any weighted check-digit sum: <code>python -m rexsum custom --weights 1,3 --mod 10 --length 13</code></p>
+    <p>rexsum compiles any weighted check-digit sum: in the <a href="generator.html">generator</a>, or <code>python -m rexsum custom --weights 1,3 --mod 10 --length 13</code></p>
     <p>The copy buttons are the page's only script.</p>
   </footer>
 </div>

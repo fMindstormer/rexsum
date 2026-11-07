@@ -14,17 +14,18 @@ DIGITS = frozenset("0123456789")
 
 
 class Node:
-    __slots__ = ("key", "_s")
+    __slots__ = ("key", "_s", "_h")
 
     def __init__(self, key):
         self.key = key
         self._s = None
+        self._h = hash(key)            # the children's hashes are cached, so this is quick
 
     def __eq__(self, other):
         return isinstance(other, Node) and self.key == other.key
 
     def __hash__(self):
-        return hash(self.key)
+        return self._h
 
     def __repr__(self):
         return f"/{self.text}/"
@@ -221,23 +222,28 @@ def _class(cs: frozenset) -> str:
 
 # precedence: 0 = inside alternation, 1 = inside concatenation, 2 = operand of a postfix
 def _print(n: Node, ctx: int) -> str:
+    """n's text where precedence ctx applies: its own text (cached), in a group if it needs one."""
     k = kind(n)
     if k == "eps":
         return "" if ctx < 2 else "(?:)"
+    if (k == "cat" and ctx == 2) or (k == "alt" and (ctx == 2 or (ctx == 1 and EPS not in n.key[1]))):
+        return f"(?:{n.text})"
+    return n.text if ctx else _text(n)
+
+
+def _text(n: Node) -> str:
+    k = kind(n)
     if k == "chr":
         return _class(n.key[1])
     if k == "cat":
-        s = "".join(_print(x, 1) for x in n.key[1])
-        return s if ctx < 2 else f"(?:{s})"
+        return "".join(_print(x, 1) for x in n.key[1])
     if k == "alt":
         its = n.key[1]
         if EPS in its:
             rest = [x for x in its if x is not EPS]
             inner = rest[0] if len(rest) == 1 else _node(("alt", tuple(rest)))
-            s = _print(inner, 2) + "?"
-            return s if ctx < 2 else f"(?:{s})"
-        s = "|".join(_print(x, 0) for x in its)
-        return s if ctx == 0 else f"(?:{s})"
+            return _print(inner, 2) + "?"
+        return "|".join(x.text for x in its)
     if k == "star":
         return _print(n.key[1], 2) + "*"
     if k == "rep":

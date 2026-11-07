@@ -1,14 +1,15 @@
 """rexsum: check-digit validation as one regular expression.
 
-    python -m rexsum --list                  the schemes and their pattern sizes
-    python -m rexsum card                    print the pattern for a scheme (from patterns.json)
-    python -m rexsum card --html             as an <input> element
-    python -m rexsum custom --weights 1,3 --mod 10 --from right [--length 13]
+    rexsum --list                            the schemes and their pattern sizes
+    rexsum card                              print the pattern for a scheme (from patterns.json)
+    rexsum card --html                       as an <input> element
+    rexsum custom --weights 1,3 --mod 10 --from right [--length 13]
                                              compile a weighted check-digit sum of your own
-    python -m rexsum iban                    one IBAN pattern for every country (from patterns.json)
-    python -m rexsum iban DE [--layout 8n10n]
-                                             a smaller pattern for one country (layouts built in
+    rexsum iban                              one IBAN pattern for every country (from patterns.json)
+    rexsum iban DE [--layout 8n10n]          a smaller pattern for one country (layouts built in
                                              for the registry's; --layout as the registry writes it)
+
+`pip install rexsum` puts the rexsum command on the path; in a checkout, run python -m rexsum.
 """
 from __future__ import annotations
 
@@ -18,12 +19,25 @@ import re
 import sys
 from pathlib import Path
 
+from . import __version__
 from .pipeline import DIGITS, Spec, compile_spec
 from .registers import iban, positions
 from .meta import input_element, keyboard
 from .specs import IBAN_LAYOUTS
 
 ROOT = Path(__file__).resolve().parent.parent
+# patterns.json: inside the package when installed with pip, at the top of the repo otherwise
+PATTERNS = next((p for p in (ROOT / "rexsum" / "patterns.json", ROOT / "patterns.json") if p.exists()), None)
+
+
+def custom(weights, mod, side="right", n=None):
+    """The sum of weight x digit is 0 mod `mod`, the weights repeating from the given side, for n
+    digits or any number (js/compile.mjs: compileCustom)."""
+    maps = [{c: w * int(c) for c in DIGITS} for w in weights]
+    fmt = rf"\d{{{n}}}" if n else r"\d+"
+    sp = Spec("custom", "custom", fmt, "cyclic", mod, maps=maps, backwards=side == "right",
+              parity=(n % len(weights)) if n else None, n=n)
+    return compile_spec(sp)
 
 
 def main(argv=None):
@@ -31,6 +45,7 @@ def main(argv=None):
     ap.add_argument("scheme", nargs="?", help="a scheme name (see --list), 'custom' or 'iban'")
     ap.add_argument("country", nargs="?", help="iban: the country code, e.g. DE")
     ap.add_argument("--list", action="store_true", help="list the schemes")
+    ap.add_argument("--version", action="version", version=f"rexsum {__version__}")
     ap.add_argument("--html", action="store_true", help="print an <input> element instead of the bare pattern")
     ap.add_argument("--weights", help="custom: weights, comma-separated, repeating (e.g. 1,3)")
     ap.add_argument("--mod", type=int, default=10, help="custom: the sum must be 0 modulo this (default 10)")
@@ -39,7 +54,7 @@ def main(argv=None):
     ap.add_argument("--length", type=int, help="custom: a fixed number of digits")
     ap.add_argument("--layout", help="iban: the BBAN layout, e.g. 4a14n (n digit, a capital letter, c either)")
     a = ap.parse_args(argv)
-    lib = json.loads((ROOT / "patterns.json").read_text()) if (ROOT / "patterns.json").exists() else {}
+    lib = json.loads(PATTERNS.read_text()) if PATTERNS else {}
     if a.list or not a.scheme:
         for name, r in lib.items():
             print(f"{name:8s} {r['length']:>8,} chars  {r['title']}")
@@ -59,14 +74,7 @@ def main(argv=None):
     if a.scheme == "custom":
         if not a.weights:
             ap.error("custom needs --weights")
-        ws = [int(x) for x in a.weights.split(",")]
-        maps = [{c: w * int(c) for c in DIGITS} for w in ws]
-        k = len(ws)
-        n = a.length
-        fmt = rf"\d{{{n}}}" if n else r"\d+"
-        sp = Spec("custom", "custom", fmt, "cyclic", a.mod, maps=maps, backwards=a.side == "right",
-                  parity=(n % k) if n else None, n=n)
-        r = compile_spec(sp)
+        r = custom([int(x) for x in a.weights.split(",")], a.mod, a.side, a.length)
         pattern = r["pattern"]
         print(f"{r['length']:,} characters", file=sys.stderr)
     else:
