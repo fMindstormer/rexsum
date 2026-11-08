@@ -31,9 +31,9 @@ and the field turns invalid whenever the last digit is wrong.
 
 Shipped: Luhn (payment cards, IMEI, Canadian SIN), GTIN/EAN/UPC, ISBN-10 and ISBN-13, ISSN, US
 bank routing numbers, Dutch BSN, IBAN (every country, or one), LEI, RF creditor references, VIN,
-Spanish DNI/NIE, Finnish HETU, Belgian OGM-VCS and French NIR. Each pattern was tested against a
-reference implementation in Python, V8, Safari's engine, and real `<input>` fields in Chromium,
-Firefox and WebKit with JavaScript off.
+Spanish DNI/NIE, Finnish HETU, Belgian OGM-VCS, French NIR, Indian Aadhaar, and the Damm and
+Verhoeff check digits. Each pattern was tested against a reference implementation in Python, V8,
+Safari's engine, and real `<input>` fields in Chromium, Firefox and WebKit with JavaScript off.
 
 The same patterns are on npm (`npm install rexsum`), and the
 [generator](https://fmindstormer.github.io/rexsum/generator.html) makes a ready `<input>` in the

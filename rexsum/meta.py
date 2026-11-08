@@ -65,6 +65,12 @@ SCHEMES = {
               "010806817183", "010806817184"),
     "nir": _s("French social security number (NIR)", "15 digits, the last two a check key; 2A or 2B for Corsica in the 6th and 7th. No spaces.",
               "295109912611193", "295109912611194", letters=True),
+    "damm": _s("Damm check digit", "1 to 20 digits, the last one a Damm check digit.",
+               "31415926535897932383", "31415926535897932384"),
+    "verhoeff": _s("Verhoeff check digit", "1 to 20 digits, the last one a Verhoeff check digit.",
+                   "2363", "2364"),
+    "aadhaar": _s("Aadhaar number", "12 digits, not starting with 0 or 1, the last one a Verhoeff check digit. No spaces.",
+                  "234123412346", "234123412347"),
 }
 
 

@@ -30,6 +30,7 @@ lib = json.loads((ROOT / "patterns.json").read_text())
 CASES = [  # the address after #, and the pattern the page must produce
     ("card", lib["card"]["pattern"]),
     ("dni", lib["dni"]["pattern"]),
+    ("damm", lib["damm"]["pattern"]),
     ("weights=1,3&mod=10&from=right&length=13", custom([1, 3], 10, "right", 13)["pattern"]),
     ("weights=7,3,1&mod=10&from=right&length=9", custom([7, 3, 1], 10, "right", 9)["pattern"]),
     ("weights=3&mod=7&from=left", custom([3], 7, "left", None)["pattern"]),

@@ -35,6 +35,7 @@ is 24,471 characters and gzips to 550 bytes.
 | `iban`, `iban_de`, `iban_nl`, `iban_gb`, `iban_fr` | IBAN: every country, or one |
 | `lei`, `rf` | Legal Entity Identifiers, RF creditor references |
 | `vin`, `dni`, `hetu`, `ogm`, `nir` | VIN, Spanish DNI/NIE, Finnish HETU, Belgian OGM-VCS, French NIR |
+| `aadhaar`, `damm`, `verhoeff` | Indian Aadhaar numbers; Damm and Verhoeff check digits, 1 to 20 digits |
 
 `schemes` gives each one's title and length. The patterns expect what the scheme writes: capitals,
 no spaces. Every pattern was tested against a reference implementation in Python, V8 and

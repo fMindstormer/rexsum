@@ -57,6 +57,12 @@ def test_known_numbers():
     assert rx["dni"].fullmatch("54362315K")
     assert rx["dni"].fullmatch("X2482300W")                            # an NIE
     assert not rx["dni"].fullmatch("54362315Z")
+    assert rx["damm"].fullmatch("5724")
+    assert not rx["damm"].fullmatch("5727")
+    assert rx["verhoeff"].fullmatch("2363")
+    assert not rx["verhoeff"].fullmatch("2336")                         # neighbours swapped
+    assert rx["aadhaar"].fullmatch("234123412346")
+    assert not rx["aadhaar"].fullmatch("123412341234")                  # never starts with 1
     assert rx["hetu"].fullmatch("131052-308T")
     assert not rx["hetu"].fullmatch("131052-308U")
     assert not rx["hetu"].fullmatch("310252-308Y")                     # 31 February
@@ -137,6 +143,30 @@ def test_weighted_sums_in_two_registers():
                     assert (rx.fullmatch(s) is not None) == want, (n, m, K, table, s)
 
 
+def test_automata_in_a_register():
+    """registers.automaton for any length up to a limit, and the fixed-length pure regex, on two
+    small automata: divisibility by 7 read from the left, and a weighted sum mod 5 read from
+    the right."""
+    from rexsum.pipeline import Spec, compile_automaton
+    from rexsum.registers import automaton
+    rng = random.Random(3)
+    for step, k, backwards, ref in [
+            (lambda i, v, c: (10 * v + int(c)) % 7, 7, False, lambda s: int(s) % 7 == 0),
+            (lambda i, v, c: (v + (i % 3 + 1) * int(c)) % 5, 5, True,
+             lambda s: sum((i % 3 + 1) * int(c) for i, c in enumerate(reversed(s))) % 5 == 0)]:
+        pattern, groups, short = automaton(r"\d{1,12}", step, k, 12, "0123456789", backwards)
+        assert groups == 12
+        rx = re.compile(python_pattern(pattern), re.ASCII)
+        for _ in range(3000):
+            t = "".join(rng.choice("0123456789") for _ in range(rng.randint(1, 13)))
+            assert (rx.fullmatch(t) is not None) == (len(t) <= 12 and ref(t)), t
+        fixed = compile_automaton(Spec("t", "t", r"\d{6}", "automaton", k, backwards=backwards, step=step, n=6))
+        rx = re.compile(python_pattern(fixed["pattern"]), re.ASCII)
+        for _ in range(2000):
+            t = "".join(rng.choice("0123456789") for _ in range(6))
+            assert (rx.fullmatch(t) is not None) == ref(t), t
+
+
 def test_regex_simplifications():
     a, b, c = chars("a"), chars("b"), chars("c")
     assert alt(a, b).text == "[ab]"
@@ -185,7 +215,8 @@ def test_html_export_keyboard():
     import contextlib
     import io
     for name, numeric in [("card", True), ("isbn10", False), ("issn", False), ("iban_de", False), ("lei", False),
-                          ("rf", False), ("vin", False), ("dni", False), ("ogm", True), ("nir", False)]:
+                          ("rf", False), ("vin", False), ("dni", False), ("ogm", True), ("nir", False),
+                          ("damm", True), ("aadhaar", True)]:
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
             main([name, "--html"])

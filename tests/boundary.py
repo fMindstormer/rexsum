@@ -58,6 +58,22 @@ EXTRA = {
     "nir": [("253072B07300470", True, "Corsica: department 2B counts as 18"),
             ("253072A07300443", True, "and 2A as 19"), ("253072C07300443", False, "there is no department 2C"),
             ("100000000004797", True, "a multiple of 97, where the key is 97")],
+    "damm": [("5724", True, "Damm's example"), ("5742", False, "the check digit swapped with its neighbour"),
+             ("0", True, "the shortest: one digit, 0"), ("05724", True, "a leading zero changes nothing"),
+             ("12345671", True, "8 digits, the longest the pure part reads"),
+             ("123456786", True, "9 digits, the shortest the registers read"),
+             ("99999999999999999992", True, "the longest: 20 digits"),
+             ("111111111111111111117", False, "21 digits, too long, though the check digit fits")],
+    "verhoeff": [("2336", False, "the check digit swapped with its neighbour"),
+                 ("02363", False, "a leading zero moves every digit's permutation"),
+                 ("0", True, "the shortest: one digit, 0"),
+                 ("12345679", True, "8 digits, the longest the pure part reads"),
+                 ("123456784", True, "9 digits, the shortest the registers read"),
+                 ("99999999999999999995", True, "the longest: 20 digits"),
+                 ("111111111111111111115", False, "21 digits, too long, though the check digit fits")],
+    "aadhaar": [("499173846154", True, "another valid number"),
+                ("123412341234", False, "the check digit fits, but Aadhaar numbers never start with 1"),
+                ("023412341233", False, "or with 0")],
 }
 
 
@@ -73,7 +89,7 @@ def cases():
                 (v[:-2] + "a" + v[-1], False, "a letter where a digit belongs")]
         if n:
             rows += [(v[:-1], False, "one character short"), (v + v[-1], False, "one character too many")]
-        if name.startswith("iban") or name in ("lei", "rf", "vin", "dni", "hetu"):
+        if name.startswith("iban") or name in ("lei", "rf", "vin", "dni", "hetu", "aadhaar"):
             rows += [(v.lower(), False, "lowercase"),
                      (" ".join(v[i:i + 4] for i in range(0, len(v), 4)), False, "printed with spaces")]
         rows += [(s, True, why) for s, why in KEPT_SWAPS.get(name, [])]

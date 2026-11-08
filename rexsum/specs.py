@@ -6,7 +6,7 @@ import re
 from .pipeline import DIGITS, Spec
 from .iban_registry import REGISTRY
 from .registers import LEI_FORMAT, LETTERS, RF_FORMAT, layout_regex
-from .schemes import DOUBLE, aba, bsn, digits, gtin, isbn10, luhn
+from .schemes import DAMM, DOUBLE, VD, VP, aba, bsn, damm, digits, gtin, isbn10, luhn, verhoeff
 
 D = DIGITS
 IDENT = {c: int(c) for c in D}
@@ -162,6 +162,16 @@ def nir(s):
     return int(s[13:]) == 97 - int(n) % 97
 
 
+def _verhoeff_step(i, s, c):
+    """Verhoeff's check, from the right: the state is an element of the dihedral group D5, and the
+    character at distance i from the end multiplies it by the permutation P[i mod 8] of the digit."""
+    return VD[s][VP[i % 8][int(c)]]
+
+
+def aadhaar(s):
+    return len(s) == 12 and digits(s) and s[0] not in "01" and verhoeff(s)
+
+
 def iban_spec(cc, title):
     layout = IBAN_LAYOUTS[cc]
     return (Spec(f"iban_{cc.lower()}", title, cc + layout_regex("2n" + layout), "registers", 97,
@@ -218,10 +228,16 @@ SPECS = [
           check=lambda r: f"{r or 97:02d}"), ogm),
     (Spec("nir", "NIR (French social security number)", NIR_FORMAT, "sums", 97, alphabet=D + "AB",
           weights=[1] * 15, value=_nir_value, check=lambda r: f"{97 - r:02d}"), nir),
+    (Spec("damm", "Damm check digit, 1 to 20 digits", r"\d{1,20}", "automaton", 10, backwards=False, longest=20,
+          step=lambda i, s, c: DAMM[s][int(c)]), lambda s: len(s) <= 20 and damm(s)),
+    (Spec("verhoeff", "Verhoeff check digit, 1 to 20 digits", r"\d{1,20}", "automaton", 10, longest=20,
+          step=_verhoeff_step), lambda s: len(s) <= 20 and verhoeff(s)),
+    (Spec("aadhaar", "Aadhaar (Indian identity number, Verhoeff)", r"[2-9]\d{11}", "automaton", 10,
+          step=lambda i, s, c: None if i == 11 and c in "01" else _verhoeff_step(i, s, c)), aadhaar),
 ]
 
 FIXED = {"card16": 16, "imei": 15, "sin": 9, "ean8": 8, "upca": 12, "ean13": 13, "isbn13": 13, "gtin14": 14,
          "aba": 9, "isbn10": 10, "issn": 8, "bsn": 9, "lei": 20, "vin": 17,
-         "dni": 9, "hetu": 11, "ogm": 12, "nir": 15}
+         "dni": 9, "hetu": 11, "ogm": 12, "nir": 15, "aadhaar": 12}
 for _sp, _ in SPECS:
     _sp.n = FIXED.get(_sp.name)

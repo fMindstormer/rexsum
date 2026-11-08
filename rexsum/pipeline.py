@@ -150,8 +150,8 @@ class Spec:
     name: str
     title: str
     fmt: str                         # regex for the format, checked by a lookahead
-    kind: str                        # "cyclic", "layered", "sums" (a weighted sum in a register) or
-                                     # "registers" (IBAN, LEI, RF)
+    kind: str                        # "cyclic", "layered", "sums" (a weighted sum in a register),
+                                     # "registers" (IBAN, LEI, RF) or "automaton" (Damm, Verhoeff)
     m: int
     alphabet: str = DIGITS
     maps: list = field(default_factory=list)       # cyclic: digit maps by position
@@ -163,6 +163,9 @@ class Spec:
     check: object = None             # the input ends with check(sum mod m) (sums: checked so; layered: the
                                      # check characters are in the sum, and this only makes test strings)
     n: int | None = None             # fixed length, if the format fixes it
+    step: object = None              # automaton: (position from the side it reads from, state, char) ->
+                                     # state or None; states 0 to m - 1, the start and accepting one 0
+    longest: int | None = None       # automaton: the longest input, if the length varies
     cc: str = ""                     # registers: the IBAN's country code (none: every country, or LEI)
     layout: str = ""                 # registers: its BBAN layout, e.g. "8n10n"
 
@@ -207,6 +210,8 @@ def compile_spec(sp: Spec) -> dict:
             pattern, groups = {"iban": lambda: iban_any(REGISTRY), "lei": lei, "rf": rf}[sp.name]()
         return {"name": sp.name, "title": sp.title, "pattern": pattern, "length": len(pattern),
                 "components": {97: {"length": len(pattern), "construction": "registers", "groups": groups}}}
+    if sp.kind == "automaton":
+        return compile_automaton(sp)
     if sp.kind == "sums":
         from .registers import weighted
         body, groups = weighted(sp.n, sp.m, contribution(sp), sp.alphabet, sp.target, sp.check)
@@ -274,3 +279,72 @@ def layered_dp(n, q, alphabet, contrib):
         if best is None or len(r) < len(best):
             best = r
     return best
+
+
+# ------------------------------------------------------------- automata, by intervals
+def table_dp(n, step, alphabet, start=0, accept=(0,)):
+    """Fixed length n, read left to right by an automaton: step(i, s, c) is the state after
+    character c at position i from state s (None: not allowed; c == "" is the empty string, for
+    padding). As layered_dp, but over pairs of states, for check digits that are no sum:
+        R[a, b][s, t] = alt over u of R[a, m][s, u] R[m, b][u, t],
+    for the states s that can occur at position a and still be accepted, and t likewise at b."""
+    from .regex import alt, cat
+    cs = list(alphabet) + [""]
+    reach = [{start}]
+    for i in range(n):
+        reach.append({t for s in reach[-1] for c in cs if (t := step(i, s, c)) is not None})
+    live = [None] * (n + 1)
+    live[n] = set(accept) & reach[n]
+    for i in range(n - 1, -1, -1):
+        live[i] = {s for s in reach[i] if any(step(i, s, c) in live[i + 1] for c in cs)}
+    memo = {}
+
+    def R(a, b):
+        if (a, b) in memo:
+            return memo[(a, b)]
+        if b - a == 1:
+            res = {}
+            for s in sorted(live[a], key=str):
+                by = {}
+                for c in cs:
+                    t = step(a, s, c)
+                    if t in live[b]:
+                        by.setdefault(t, []).append(c)
+                for t, xs in by.items():
+                    real = [c for c in xs if c]
+                    res[(s, t)] = alt(chars(real) if real else None, EPS if "" in xs else None)
+        else:
+            res, best_len = None, None
+            for m in range(a + 1, b):
+                L, Rr = R(a, m), R(m, b)
+                res_m = {}
+                for s in live[a]:
+                    for t in live[b]:
+                        parts = [cat(L[(s, u)], Rr[(u, t)]) for u in live[m] if (s, u) in L and (u, t) in Rr]
+                        if parts:
+                            res_m[(s, t)] = alt(*parts)
+                tot = sum(len(x) for x in res_m.values())
+                if res is None or tot < best_len:
+                    res, best_len = res_m, tot
+        memo[(a, b)] = res
+        return res
+    top = R(0, n)
+    return alt(*[top[(start, f)] for f in live[n] if (start, f) in top])
+
+
+def compile_automaton(sp: Spec) -> dict:
+    """A fixed length gives a pure regex by intervals (the automaton reads from the right if
+    `backwards`, so the regex is built for the reversed input and reversed); a varying one keeps
+    the state in a register (registers.automaton)."""
+    _interned.clear()
+    if not sp.n:
+        from .registers import automaton
+        pattern, groups, short = automaton(sp.fmt, sp.step, sp.m, sp.longest, sp.alphabet, sp.backwards)
+        return {"name": sp.name, "title": sp.title, "pattern": pattern, "length": len(pattern),
+                "components": {sp.m: {"length": len(pattern), "construction": "registers", "groups": groups,
+                                      "short": short}}}
+    r = table_dp(sp.n, lambda i, s, c: sp.step(i, s, c) if c else None, sp.alphabet)
+    text = (reverse(r) if sp.backwards else r).text
+    pattern = f"(?={sp.fmt}$)(?:{text})"
+    return {"name": sp.name, "title": sp.title, "pattern": pattern, "length": len(pattern),
+            "components": {sp.m: {"length": len(text), "construction": "intervals"}}}

@@ -2,8 +2,9 @@
 
 The last digit of a credit card number is a checksum. So is the last digit of an ISBN, a barcode,
 an IMEI or a US routing number, the two digits after the country code in an IBAN, the ninth
-character of a North American VIN, the letter at the end of a Spanish identity number, and the
-last two characters of an LEI, the code that identifies a company in financial reporting. Every
+character of a North American VIN, the letter at the end of a Spanish identity number, the last
+digit of an Indian Aadhaar number, and the last two characters of an LEI, the code that
+identifies a company in financial reporting. Every
 validation guide says the same thing about them: a regular expression can check the format, but
 the checksum needs code.
 
@@ -47,6 +48,7 @@ python -m rexsum lei                        # Legal Entity Identifiers
 python -m rexsum rf                         # RF creditor references (payment references)
 python -m rexsum vin                        # vehicle identification numbers
 python -m rexsum dni                        # Spanish DNI or NIE; also hetu, ogm, nir
+python -m rexsum aadhaar                    # Aadhaar numbers; also damm and verhoeff, 1 to 20 digits
 ```
 
 Python 3.10 or later, no dependencies. A browser never tests an empty field against the pattern,
@@ -143,7 +145,14 @@ recursively, down to single positions.
 This wins for short numbers (EAN-8 drops from 12,203 to 3,971 characters) and for the mod-11
 schemes such as ISBN-10, where every digit adds a different residue so no character classes
 merge. It also gives the Spanish DNI or NIE, whose letter names the number mod 23: 140,174
-characters, the largest pure pattern here.
+characters.
+
+A check that is no sum splits the same way, with one regex for each pair of states (the state
+where the interval starts and the one where it ends) instead of one for each residue. Aadhaar
+numbers, India's 12-digit identity numbers, carry a Verhoeff check digit: each digit is permuted
+by its distance from the end and multiplied into an element of the dihedral group D5, a group of
+order 10 that does not commute. Their pattern has 142,089 characters, the largest pure pattern
+here.
 
 ### 4. For IBAN, turn capture groups into registers
 
@@ -277,6 +286,19 @@ Small registers also make the tests short, so the split machine is smaller on lo
 the LEI pattern would shrink from 85,446 characters to 42,694, and Germany's IBAN from 59,966 to
 25,280. The shipped IBAN and LEI patterns still use the machine described above.
 
+**No sum at all: the state in a register.** Damm's check digit runs a table of order 10, a
+quasigroup: the new state is T[state][digit], and the number is valid when the state ends at 0.
+Verhoeff's is the group product above. Neither splits, and a pure regex for Damm numbers of any
+length takes 1,398,101 characters. A register holds a state as well as a remainder: each digit
+is one group whose alternatives go by digit and state, 100 in all, about 2,000 characters a step
+(`registers.Table`, which writes them by digit or by state, whichever is shorter). The input is
+read right-aligned, so one pattern serves 1 to 20 digits. Damm reads from the left, and a
+missing leading digit counts as 0, which leaves state 0 alone; Verhoeff reads from the right
+and keeps its state once the digits run out. A register holds at most the input's length and
+the states go up to 9, so inputs of 1 to 8 digits get a pure regex instead, built by intervals
+with the missing characters as empty strings. Damm comes out at 52,452 characters and Verhoeff
+at 55,245.
+
 A note on terms. Backreferences make the syntax more expressive than regular expressions: in
 general, a pattern that uses them can describe languages no finite automaton accepts. These
 patterns do not. Their strings have bounded length (one length per country, 20 characters for
@@ -299,34 +321,37 @@ which is stricter than older JavaScript about what may appear inside a character
 | Scheme | Characters | V8 compile | Median match |
 |---|---:|---:|---:|
 | Luhn, any length | 24,465 | 7 ms | 0.6 µs |
-| Payment card, 12–19 digits | 24,471 | 6 ms | 0.4 µs |
+| Payment card, 12–19 digits | 24,471 | 7 ms | 0.5 µs |
 | Payment card, 16 digits | 12,602 | 3 ms | 0.6 µs |
-| IMEI (15 digits) | 24,466 | 7 ms | 1.2 µs |
-| Canadian SIN (9 digits) | 10,379 | 21 ms | 0.2 µs |
-| GTIN, any length | 23,806 | 11 ms | 1.2 µs |
+| IMEI (15 digits) | 24,466 | 7 ms | 1.5 µs |
+| Canadian SIN (9 digits) | 10,379 | 20 ms | 0.2 µs |
+| GTIN, any length | 23,806 | 11 ms | 1.3 µs |
 | EAN-8 | 3,971 | 4 ms | 0.3 µs |
 | UPC-A | 12,262 | 4 ms | 0.8 µs |
-| EAN-13 | 23,808 | 11 ms | 1.9 µs |
-| ISBN-13 | 23,814 | 12 ms | 1.3 µs |
+| EAN-13 | 23,808 | 12 ms | 2.0 µs |
+| ISBN-13 | 23,814 | 11 ms | 1.3 µs |
 | GTIN-14 | 12,262 | 4 ms | 1.0 µs |
 | ABA routing number | 10,022 | 11 ms | 0.4 µs |
-| ISBN-10 | 91,659 | 89 ms | 3.5 µs |
-| ISSN | 16,199 | 9 ms | 1.9 µs |
-| BSN (Dutch elfproef) | 53,594 | 44 ms | 2.3 µs |
-| IBAN, Germany | 59,966 | 32 ms | 9.2 µs |
-| IBAN, Netherlands | 49,350 | 24 ms | 7.5 µs |
+| ISBN-10 | 91,659 | 90 ms | 3.3 µs |
+| ISSN | 16,199 | 10 ms | 1.9 µs |
+| BSN (Dutch elfproef) | 53,594 | 45 ms | 2.3 µs |
+| IBAN, Germany | 59,966 | 33 ms | 9.6 µs |
+| IBAN, Netherlands | 49,350 | 26 ms | 7.9 µs |
 | IBAN, United Kingdom | 66,271 | 34 ms | 10 µs |
-| IBAN, France | 107,237 | 65 ms | 17 µs |
-| IBAN, any country (89) | 178,241 | 160 ms | 22 µs |
-| LEI (Legal Entity Identifier) | 85,446 | 46 ms | 13 µs |
+| IBAN, France | 107,237 | 63 ms | 18 µs |
+| IBAN, any country (89) | 178,241 | 153 ms | 21 µs |
+| LEI (Legal Entity Identifier) | 85,446 | 44 ms | 14 µs |
 | RF creditor reference | 54,309 | 19 ms | 19 µs |
 | VIN (check digit) | 7,025 | 3 ms | 3.7 µs |
-| Spanish DNI or NIE | 140,174 | 135 ms | 9.6 µs |
-| Finnish HETU | 11,494 | 4 ms | 2.6 µs |
-| Belgian structured communication | 18,276 | 8 ms | 3.8 µs |
-| French NIR | 23,764 | 11 ms | 6.8 µs |
+| Spanish DNI or NIE | 140,174 | 135 ms | 7.3 µs |
+| Finnish HETU | 11,494 | 3 ms | 2.3 µs |
+| Belgian structured communication | 18,276 | 6 ms | 3.6 µs |
+| French NIR | 23,764 | 9 ms | 6.1 µs |
+| Damm, 1–20 digits | 52,452 | 32 ms | 10 µs |
+| Verhoeff, 1–20 digits | 55,245 | 31 ms | 7.4 µs |
+| Aadhaar (Verhoeff, 12 digits) | 142,089 | 189 ms | 16 µs |
 
-V8 13.6.233.10-node.24 in Node 24.6.0, Apple M4, measured 2026-11-02 (`speed.json`).
+V8 13.6.233.10-node.24 in Node 24.6.0, Apple M4, measured 2026-11-08 (`speed.json`).
 <!-- /table -->
 
 ### Do they hold up in real browsers?
@@ -364,7 +389,7 @@ Here the slowest of 20 random 1,000-digit inputs took under 1 ms (for Luhn and G
 that accept any length; the others reject such lengths at once). That is a measurement on random
 inputs, not a worst-case guarantee.
 
-**Size on the wire.** Servers compress HTML, and the patterns compress well, 8 to 45 times:
+**Size on the wire.** Servers compress HTML, and the patterns compress well, 5 to 48 times:
 Luhn's 24,465 characters gzip to 542 bytes and the German IBAN's 59,966 to 6.6 kB. GitHub Pages
 sends the demo page, 548 kB with twelve fields, as 50 kB.
 
@@ -504,8 +529,9 @@ the lower bound for pure regexes in the form given above, which I have not seen 
 - **IBAN, LEI and RF patterns take the electronic form only:** capitals, no spaces. The IBAN layouts
   are those of the registry's release 101 (`rexsum/iban_registry.py`); a country added later
   needs a rebuild, or `python -m rexsum iban CC --layout …` for that country alone.
-- **Damm** (a quasigroup, so nothing splits) comes out at 1,398,101 characters by direct
-  elimination. Registers should handle Damm and Verhoeff; not tried yet.
+- **Damm and Verhoeff stop at 20 digits.** Their registers take a step of about 2,000
+  characters per digit, so a longer limit costs that much more; Aadhaar's 16-digit Virtual ID
+  fits. A pure regex for Damm at any length takes 1,398,101 characters.
 - **A register holds at most the input's length.** One register for a weighted sum needs an
   input at least one shorter than the modulus, and two need about its square root. Horner's rule
   needs 13 characters with whole registers and 5 with split ones. The shipped mod-11 patterns
@@ -524,8 +550,8 @@ the lower bound for pure regexes in the form given above, which I have not seen 
 rexsum/regex.py      regex trees with simplifying constructors, printed in JavaScript syntax
 rexsum/automata.py   automata: exploration, minimization
 rexsum/elim.py       state elimination, greedy orders
-rexsum/pipeline.py   the CRT split, period-first elimination, interval splitting, pattern assembly
-rexsum/registers.py  capture groups as registers: IBAN, LEI and RF by Horner's rule, weighted sums in one register or two
+rexsum/pipeline.py   the CRT split, period-first elimination, interval splitting (residues or states), pattern assembly
+rexsum/registers.py  capture groups as registers: IBAN, LEI and RF by Horner's rule, weighted sums in one register or two, automata (Damm, Verhoeff)
 rexsum/iban_registry.py  every country's IBAN layout, from SWIFT's IBAN Registry
 rexsum/specs.py      the shipped schemes;  rexsum/schemes.py  reference checkers and experiments
 rexsum/meta.py       labels, formats, samples and keyboards, shared by the CLI, page and examples

@@ -40,8 +40,11 @@ README_TITLES = {
     "iban_nl": "IBAN, Netherlands", "iban_gb": "IBAN, United Kingdom", "iban_fr": "IBAN, France",
     "iban": "IBAN, any country (89)", "lei": "LEI (Legal Entity Identifier)", "rf": "RF creditor reference",
     "vin": "VIN (check digit)", "dni": "Spanish DNI or NIE", "hetu": "Finnish HETU",
-    "ogm": "Belgian structured communication", "nir": "French NIR",
+    "ogm": "Belgian structured communication", "nir": "French NIR", "damm": "Damm, 1–20 digits",
+    "verhoeff": "Verhoeff, 1–20 digits", "aadhaar": "Aadhaar (Verhoeff, 12 digits)",
 }
+# what the check computes in, where it is no sum mod q
+OVER = {"damm": "Damm's quasigroup", "verhoeff": "dihedral group D5", "aadhaar": "dihedral group D5"}
 
 CONSTRUCTION = {"cyclic": "period-first elimination", "cyclic, any length": "period-first elimination",
                 "intervals": "interval splitting", "registers": "capture groups as registers"}
@@ -50,7 +53,7 @@ facts["iban_de_groups"] = str(lib["iban_de"]["components"]["97"]["groups"])
 facts["lei"] = f"{lib['lei']['length']:,}"
 facts["iban_any"] = f"{lib['iban']['length']:,}"
 facts["vin"] = f"{lib['vin']['length']:,}"
-for _name in ("rf", "dni", "hetu", "ogm", "nir"):
+for _name in ("rf", "dni", "hetu", "ogm", "nir", "damm", "verhoeff", "aadhaar"):
     facts[_name] = f"{lib[_name]['length']:,}"
 
 
@@ -95,7 +98,7 @@ for name, r in lib.items():
     comps = r["components"]
     parts = []
     for q, c in sorted(comps.items(), key=lambda x: int(x[0])):
-        parts.append(f"mod {q}: {fmt(c['length'])}")
+        parts.append(f"{OVER.get(name, f'mod {q}')}: {fmt(c['length'])}")
     big = max(comps.items(), key=lambda x: x[1]["length"])
     sp = speed["rows"][name]
     rows.append(f'''<tr><td>{html.escape(r['title'])}</td><td class="num">{fmt(r['length'])}</td>

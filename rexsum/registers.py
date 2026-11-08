@@ -709,3 +709,92 @@ def weighted(n, m, contrib, alphabet, target=0, check=None):
         if best is None or len(text) < len(best[0]):
             best = (text, a.groups)
     return best
+
+
+# ------------------------------------------------------------- automata in one register
+def _alts(xs):
+    return xs[0] if len(xs) == 1 else "(?:" + "|".join(xs) + ")"
+
+
+class Table(Machine):
+    """A finite automaton in one register, for check digits that are no sum (Damm, Verhoeff):
+    the register holds the state, and each step sets a new group from the table state ->
+    character -> state. The length varies, so a state is tested from the start of the input."""
+
+    def __init__(self, n):
+        super().__init__(n, fixed=False)
+        self.s, self.srange = None, {0}
+
+    def step(self, head, table, last, missing=None):
+        """Read one character: head(chars) is the lookahead that it is one of `chars`, and
+        table[v][c] the state after c. The characters that act like `last` are not tested, so
+        they stand for any other input too. With `missing` (the lookahead that there is no
+        character), the state is kept then. The alternatives go by character, each testing the
+        state, or by state, each testing the character, whichever is shorter."""
+        S, vs = self.s, sorted(self.srange)
+        acts = {}
+        for c in sorted({c for v in vs for c in table[v]}):
+            acts.setdefault(tuple(table[v][c] for v in vs), []).append(c)
+        acts = sorted(acts.items(), key=lambda a: last in a[1])
+
+        def state(i):
+            return "" if i == len(vs) - 1 else self.test(S, {vs[i]}, self.srange)
+
+        def char(j):
+            return "" if j == len(acts) - 1 else head("".join(acts[j][1]))
+        by_char = [char(j) + _alts([state(i) + dots(ts[i]) for i in range(len(vs))]) for j, (ts, _) in enumerate(acts)]
+        by_state = [state(i) + _alts([char(j) + dots(ts[i]) for j, (ts, _) in enumerate(acts)]) for i in range(len(vs))]
+        alts = min(by_char, by_state, key=lambda a: len("|".join(a)))
+        new = {t for ts, _ in acts for t in ts}
+        if missing is not None:
+            alts = [missing + ("" if S is None else f"\\{S}")] + alts
+            new |= self.srange
+        self.s, self.srange = self.write(alts), new
+
+    def accept(self, target):
+        return self.test(self.s, {target}, self.srange)
+
+
+def automaton(fmt, step, k, longest, alphabet, backwards):
+    """The pattern for inputs of `fmt`, 1 to `longest` characters, accepted by an automaton with
+    states 0 to k - 1 (step as for pipeline.table_dp, the start and accepting state 0), read from
+    the right if `backwards`, else from the left, then without regard to position. The input is
+    read right-aligned: a character at a fixed distance from the end, if there is one. A register
+    holds at most the input's length, so inputs of k - 1 characters or more go to the registers,
+    and shorter ones to a pure regex in which the missing characters are empty strings. Returns
+    the pattern, its number of groups, and the length of the pure part."""
+    from .pipeline import table_dp
+    from .regex import reverse
+    short = k - 2                       # the longest input for the pure part
+    m = Table(k - 1)
+    table = lambda i: {v: {c: step(i, v, c) for c in alphabet} for v in range(k)}  # noqa: E731
+    if backwards:                       # the character at distance i from the end has index i
+        for i in range(longest):
+            m.step(lambda cs, i=i: f"(?=.*{cls(cs)}{dots(i)}$)", table(i), alphabet[-1],
+                   missing=f"(?!{dots(i + 1)})" if i > short else None)
+
+        def padded(i, s, c):            # the reversed input, padded at its end
+            v, ended = s
+            if not c:
+                return (v, True)
+            return None if ended else (step(i, v, c), False)
+        r = reverse(table_dp(short, padded, alphabet, (0, False), [(0, False), (0, True)]))
+    else:
+        assert all(step(0, v, c) == step(i, v, c) for i in range(longest) for v in range(k) for c in alphabet)
+        idle = [c for c in alphabet if step(0, 0, c) == 0]
+        for d in range(longest - 1, -1, -1):
+            # before the input starts the state is 0, so a character that keeps 0 can stand for none
+            m.step(lambda cs, d=d: f"(?=.*{cls(cs)}{dots(d)}$)", table(0), idle[0] if idle else alphabet[-1],
+                   missing=None if idle or d <= short else f"(?!{dots(d + 1)})")
+
+        if idle:                        # then nothing changes where the state is 0: pad there
+            r = table_dp(short, lambda i, v, c: (v if v == 0 else None) if not c else step(0, v, c), alphabet)
+        else:                           # or only at the start
+            def padded(i, s, c):
+                v, started = s
+                if not c:
+                    return None if started else s
+                return (step(0, v, c), True)
+            r = table_dp(short, padded, alphabet, (0, False), [(0, True)])
+    regs = "".join(m.parts) + m.accept(0)
+    return f"(?={fmt}$)(?:{r.text}|(?={dots(k - 1)}){regs}{fmt})", m.groups, len(r.text)

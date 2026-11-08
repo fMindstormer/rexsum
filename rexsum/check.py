@@ -160,6 +160,8 @@ def candidates(sp, rng, k):
     for _ in range(k):
         if sp.fmt.startswith("97[89]"):
             n, pre = 10, rng.choice(["978", "979"])
+        elif sp.n and not fixed:        # a fixed length the format writes otherwise (Aadhaar)
+            n, pre = sp.n, ""
         else:
             n, pre = (int(fixed.group(1)) + (1 if "X" in sp.fmt else 0) if fixed else rng.choice(lens)), ""
         if sp.fmt.startswith(r"\d{12,19}"):
