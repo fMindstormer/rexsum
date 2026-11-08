@@ -186,10 +186,16 @@ function pr(n, ctx) {
       return ctx < 2 ? text(n) : "(?:" + text(n) + ")";
     case "alt":
       return ctx === 0 || (n.eps && ctx === 1) ? text(n) : "(?:" + text(n) + ")";
+    case "rep":
+      return ctx === 2 && !counted(n) ? "(?:" + text(n) + ")" : text(n);
     default:
       return text(n);
   }
 }
+
+// a repeat is written out (xx) unless the counter (x{2}) is shorter: V8 gives every counter a loop
+// register, and with thousands of them Chromium compiles a pattern up to seven times slower
+const counted = (n) => pr(n.x, 1).length * n.n > pr(n.x, 2).length + String(n.n).length + 2;
 
 function text(n) {
   if (n.t !== null) return n.t;
@@ -214,7 +220,7 @@ function text(n) {
       s = pr(n.x, 2) + "+";
       break;
     case "rep":
-      s = pr(n.x, 2) + "{" + n.n + "}";
+      s = counted(n) ? pr(n.x, 2) + "{" + n.n + "}" : pr(n.x, 1).repeat(n.n);
       break;
   }
   if (s.length > budget) throw new TooLong();

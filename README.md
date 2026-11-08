@@ -144,15 +144,16 @@ recursively, down to single positions.
 
 This wins for short numbers (EAN-8 drops from 12,203 to 3,971 characters) and for the mod-11
 schemes such as ISBN-10, where every digit adds a different residue so no character classes
-merge. It also gives the Spanish DNI or NIE, whose letter names the number mod 23: 140,174
-characters.
+merge. It also gives the Spanish DNI or NIE, whose letter names the number mod 23: 134,792
+characters, the largest pure pattern here.
 
 A check that is no sum splits the same way, with one regex for each pair of states (the state
 where the interval starts and the one where it ends) instead of one for each residue. Aadhaar
 numbers, India's 12-digit identity numbers, carry a Verhoeff check digit: each digit is permuted
 by its distance from the end and multiplied into an element of the dihedral group D5, a group of
-order 10 that does not commute. Their pattern has 142,089 characters, the largest pure pattern
-here.
+order 10 that does not commute. Their pattern has 134,489 characters. It reads the digits from
+the left, each multiplying the product from the left, rather than from the right as the
+definition does; the size is the same, but Chromium compiles it in half the time.
 
 ### 4. For IBAN, turn capture groups into registers
 
@@ -258,7 +259,7 @@ is kept.
 
 A pure regex for HETU would need over 300,000 characters, and for the other two the bounds
 rule one out. The Spanish DNI or NIE (mod 23) would take 9,522 characters on two registers, but
-it ships as the pure regex of step 3: its 140,174 characters hold 71,070 symbols, within 14% of
+it ships as the pure regex of step 3: its 134,792 characters hold 71,070 symbols, within 14% of
 the 62,345 that any pure regex needs.
 
 The bounds come from the argument in How small can a pure regex be, applied to a narrower
@@ -267,8 +268,8 @@ allows fewer characters at some positions. So the DNI bound counts DNIs only, wi
 in front, the HETU bound counts only dates that exist in every month, and the last two narrow
 the two check digits to 01 to 89 without a final 0, which makes them independent positions. The
 HETU pattern checks the date too, leap years included, as python-stdnum does. The mod-11 schemes
-fit as well: ISBN-10 would shrink from 91,659 characters to 3,454, ISSN from 16,199 to 7,209 and
-BSN from 53,594 to 8,239.
+fit as well: ISBN-10 would shrink from 86,819 characters to 3,454, ISSN from 15,319 to 7,209 and
+BSN from 50,734 to 8,239.
 
 **Short inputs: split every register.** An RF creditor reference (ISO 11649), the structured
 payment reference on European invoices, is RF, two check digits, then 1 to 21 digits or
@@ -288,16 +289,16 @@ the LEI pattern would shrink from 85,446 characters to 42,694, and Germany's IBA
 
 **No sum at all: the state in a register.** Damm's check digit runs a table of order 10, a
 quasigroup: the new state is T[state][digit], and the number is valid when the state ends at 0.
-Verhoeff's is the group product above. Neither splits, and a pure regex for Damm numbers of any
-length takes 1,398,101 characters. A register holds a state as well as a remainder: each digit
-is one group whose alternatives go by digit and state, 100 in all, about 2,000 characters a step
-(`registers.Table`, which writes them by digit or by state, whichever is shorter). The input is
-read right-aligned, so one pattern serves 1 to 20 digits. Damm reads from the left, and a
-missing leading digit counts as 0, which leaves state 0 alone; Verhoeff reads from the right
-and keeps its state once the digits run out. A register holds at most the input's length and
-the states go up to 9, so inputs of 1 to 8 digits get a pure regex instead, built by intervals
-with the missing characters as empty strings. Damm comes out at 52,452 characters and Verhoeff
-at 55,245.
+Verhoeff's is the group product above. Neither splits, and direct state elimination gives
+699,051 characters for Damm numbers of any length. A register holds a state as well as a
+remainder: each digit is one group whose alternatives go by digit and state, 100 in all, about
+2,000 characters a step (`registers.Table`, which writes them by digit or by state, whichever is
+shorter). The input is read right-aligned, so one pattern serves 1 to 20 digits. Damm reads from
+the left, and a missing leading digit counts as 0, which leaves state 0 alone; Verhoeff reads
+from the right and keeps its state once the digits run out. A register holds at most the input's
+length and the states go up to 9, so inputs of 1 to 8 digits get a pure regex instead, built by
+intervals with the missing characters as empty strings. Damm comes out at 51,637 characters and
+Verhoeff at 54,425.
 
 A note on terms. Backreferences make the syntax more expressive than regular expressions: in
 general, a pattern that uses them can describe languages no finite automaton accepts. These
@@ -312,8 +313,12 @@ least 55 million.
 
 Underneath all four steps, the regex builder (`rexsum/regex.py`) simplifies as it goes: single
 characters merge into classes, alternatives that share a first or last item are factored, and
-repeats become `{n}` and `+`. Every pattern uses only syntax that is valid under the `v` flag,
-which is stricter than older JavaScript about what may appear inside a character class.
+repeats become `+`, or `{n}` where that is shorter than writing them out. Counters cost more than
+their characters: V8 gives each one a loop register, and with 3,801 of them (`8{2}` for `88`)
+Chromium took 1.4 seconds to compile the Aadhaar pattern at the first keystroke, against 0.2
+seconds with the repeats written out, which also made it 5% shorter. Every pattern uses only
+syntax that is valid under the `v` flag, which is stricter than older JavaScript about what may
+appear inside a character class.
 
 ## Results
 
@@ -323,33 +328,33 @@ which is stricter than older JavaScript about what may appear inside a character
 | Luhn, any length | 24,465 | 7 ms | 0.6 µs |
 | Payment card, 12–19 digits | 24,471 | 7 ms | 0.5 µs |
 | Payment card, 16 digits | 12,602 | 3 ms | 0.6 µs |
-| IMEI (15 digits) | 24,466 | 7 ms | 1.5 µs |
-| Canadian SIN (9 digits) | 10,379 | 20 ms | 0.2 µs |
+| IMEI (15 digits) | 24,466 | 7 ms | 1.3 µs |
+| Canadian SIN (9 digits) | 10,379 | 21 ms | 0.2 µs |
 | GTIN, any length | 23,806 | 11 ms | 1.3 µs |
 | EAN-8 | 3,971 | 4 ms | 0.3 µs |
 | UPC-A | 12,262 | 4 ms | 0.8 µs |
 | EAN-13 | 23,808 | 12 ms | 2.0 µs |
-| ISBN-13 | 23,814 | 11 ms | 1.3 µs |
+| ISBN-13 | 23,814 | 12 ms | 1.3 µs |
 | GTIN-14 | 12,262 | 4 ms | 1.0 µs |
 | ABA routing number | 10,022 | 11 ms | 0.4 µs |
-| ISBN-10 | 91,659 | 90 ms | 3.3 µs |
-| ISSN | 16,199 | 10 ms | 1.9 µs |
-| BSN (Dutch elfproef) | 53,594 | 45 ms | 2.3 µs |
-| IBAN, Germany | 59,966 | 33 ms | 9.6 µs |
-| IBAN, Netherlands | 49,350 | 26 ms | 7.9 µs |
-| IBAN, United Kingdom | 66,271 | 34 ms | 10 µs |
-| IBAN, France | 107,237 | 63 ms | 18 µs |
-| IBAN, any country (89) | 178,241 | 153 ms | 21 µs |
-| LEI (Legal Entity Identifier) | 85,446 | 44 ms | 14 µs |
+| ISBN-10 | 86,819 | 58 ms | 2.9 µs |
+| ISSN | 15,319 | 7 ms | 1.7 µs |
+| BSN (Dutch elfproef) | 50,734 | 32 ms | 2.1 µs |
+| IBAN, Germany | 59,966 | 34 ms | 9.6 µs |
+| IBAN, Netherlands | 49,350 | 26 ms | 7.7 µs |
+| IBAN, United Kingdom | 66,271 | 34 ms | 11 µs |
+| IBAN, France | 107,237 | 69 ms | 18 µs |
+| IBAN, any country (89) | 178,241 | 149 ms | 21 µs |
+| LEI (Legal Entity Identifier) | 85,446 | 43 ms | 14 µs |
 | RF creditor reference | 54,309 | 19 ms | 19 µs |
 | VIN (check digit) | 7,025 | 3 ms | 3.7 µs |
-| Spanish DNI or NIE | 140,174 | 135 ms | 7.3 µs |
+| Spanish DNI or NIE | 134,792 | 94 ms | 6.5 µs |
 | Finnish HETU | 11,494 | 3 ms | 2.3 µs |
-| Belgian structured communication | 18,276 | 6 ms | 3.6 µs |
-| French NIR | 23,764 | 9 ms | 6.1 µs |
-| Damm, 1–20 digits | 52,452 | 32 ms | 10 µs |
-| Verhoeff, 1–20 digits | 55,245 | 31 ms | 7.4 µs |
-| Aadhaar (Verhoeff, 12 digits) | 142,089 | 189 ms | 16 µs |
+| Belgian structured communication | 18,276 | 6 ms | 3.4 µs |
+| French NIR | 23,764 | 8 ms | 5.9 µs |
+| Damm, 1–20 digits | 51,637 | 30 ms | 9.3 µs |
+| Verhoeff, 1–20 digits | 54,425 | 30 ms | 7.1 µs |
+| Aadhaar (Verhoeff, 12 digits) | 134,489 | 103 ms | 5.3 µs |
 
 V8 13.6.233.10-node.24 in Node 24.6.0, Apple M4, measured 2026-11-08 (`speed.json`).
 <!-- /table -->
@@ -391,7 +396,7 @@ inputs, not a worst-case guarantee.
 
 **Size on the wire.** Servers compress HTML, and the patterns compress well, 5 to 48 times:
 Luhn's 24,465 characters gzip to 542 bytes and the German IBAN's 59,966 to 6.6 kB. GitHub Pages
-sends the demo page, 548 kB with twelve fields, as 50 kB.
+sends the demo page, 540 kB with twelve fields, as 50 kB.
 
 ## How small can a pure regex be?
 
@@ -531,7 +536,7 @@ the lower bound for pure regexes in the form given above, which I have not seen 
   needs a rebuild, or `python -m rexsum iban CC --layout …` for that country alone.
 - **Damm and Verhoeff stop at 20 digits.** Their registers take a step of about 2,000
   characters per digit, so a longer limit costs that much more; Aadhaar's 16-digit Virtual ID
-  fits. A pure regex for Damm at any length takes 1,398,101 characters.
+  fits. Direct elimination gives 699,051 characters for Damm at any length.
 - **A register holds at most the input's length.** One register for a weighted sum needs an
   input at least one shorter than the modulus, and two need about its square root. Horner's rule
   needs 13 characters with whole registers and 5 with split ones. The shipped mod-11 patterns

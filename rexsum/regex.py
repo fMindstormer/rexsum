@@ -226,9 +226,17 @@ def _print(n: Node, ctx: int) -> str:
     k = kind(n)
     if k == "eps":
         return "" if ctx < 2 else "(?:)"
-    if (k == "cat" and ctx == 2) or (k == "alt" and (ctx == 2 or (ctx == 1 and EPS not in n.key[1]))):
+    if (k == "cat" and ctx == 2) or (k == "alt" and (ctx == 2 or (ctx == 1 and EPS not in n.key[1]))) \
+            or (k == "rep" and ctx == 2 and not _counted(n)):
         return f"(?:{n.text})"
     return n.text if ctx else _text(n)
+
+
+def _counted(n: Node) -> bool:
+    """A repeat is written out (xx) unless the counter (x{2}) is shorter: V8 gives every counter a
+    loop register, and with thousands of them Chromium compiles a pattern up to seven times slower."""
+    x, m = n.key[1], n.key[2]
+    return len(_print(x, 1)) * m > len(_print(x, 2)) + len(str(m)) + 2
 
 
 def _text(n: Node) -> str:
@@ -247,7 +255,8 @@ def _text(n: Node) -> str:
     if k == "star":
         return _print(n.key[1], 2) + "*"
     if k == "rep":
-        return _print(n.key[1], 2) + "{%d}" % n.key[2]
+        x, m = n.key[1], n.key[2]
+        return _print(x, 2) + "{%d}" % m if _counted(n) else _print(x, 1) * m
     if k == "plus":
         return _print(n.key[1], 2) + "+"
     raise ValueError(k)

@@ -172,7 +172,10 @@ def test_regex_simplifications():
     assert alt(a, b).text == "[ab]"
     assert alt(cat(a, b), cat(a, c)).text == "a[bc]"
     assert alt(cat(b, a), cat(c, a)).text == "[bc]a"
-    assert cat(a, a, a).text == "a{3}"
+    assert cat(a, a, a).text == "aaa"                                  # written out while no longer
+    assert cat(a, a, a, a, a).text == "a{5}"
+    assert cat(alt(a, b), alt(a, b)).text == "[ab]{2}"
+    assert star(cat(a, a)).text == "(?:aa)*"
     assert cat(a, star(a)).text == "a+"
     assert reverse(cat(a, b, star(c))).text == "c*ba"
     assert alt(EPS, cat(a, b)).text == "(?:ab)?"

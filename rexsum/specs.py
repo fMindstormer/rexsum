@@ -168,6 +168,15 @@ def _verhoeff_step(i, s, c):
     return VD[s][VP[i % 8][int(c)]]
 
 
+def _aadhaar_step(i, s, c):
+    """Verhoeff's check for 12 digits, read from the left: the leftmost digit is the last factor of
+    the product, so each digit multiplies the state from the left. (The same pattern size as reading
+    from the right and reversing, but Chromium compiles this one in half the time.)"""
+    if i == 0 and c in "01":
+        return None
+    return VD[VP[(11 - i) % 8][int(c)]][s]
+
+
 def aadhaar(s):
     return len(s) == 12 and digits(s) and s[0] not in "01" and verhoeff(s)
 
@@ -233,7 +242,7 @@ SPECS = [
     (Spec("verhoeff", "Verhoeff check digit, 1 to 20 digits", r"\d{1,20}", "automaton", 10, longest=20,
           step=_verhoeff_step), lambda s: len(s) <= 20 and verhoeff(s)),
     (Spec("aadhaar", "Aadhaar (Indian identity number, Verhoeff)", r"[2-9]\d{11}", "automaton", 10,
-          step=lambda i, s, c: None if i == 11 and c in "01" else _verhoeff_step(i, s, c)), aadhaar),
+          backwards=False, step=_aadhaar_step), aadhaar),
 ]
 
 FIXED = {"card16": 16, "imei": 15, "sin": 9, "ean8": 8, "upca": 12, "ean13": 13, "isbn13": 13, "gtin14": 14,
