@@ -321,7 +321,7 @@ footer { color: var(--ink-3); font-size: 0.88rem; border-top: 1px solid var(--ru
     <div class="limits">
       <div class="limit"><b>Mod 97 as a pure regex</b><p>Eight-digit multiples of 97 already need 100,133 characters, and any pure regex for a German IBAN needs at least 55 million (the README has the proof). The IBAN patterns here use capture groups instead, and accept only the electronic form: capitals, no spaces.</p></div>
       <div class="limit"><b>Damm and Verhoeff stop at 20 digits</b><p>Their registers take one step per digit, about 2,000 characters each, so a longer limit costs that much more per digit. Aadhaar's 16-digit Virtual ID fits.</p></div>
-      <div class="limit"><b>The largest pure regexes</b><p>Neither the Spanish DNI's modulus, 23, nor Verhoeff's group splits, so each pattern is one piece: 134,792 characters for the DNI and 134,489 for 12-digit Aadhaar numbers. The first keystroke compiles it: about 0.1 seconds in Chromium on GitHub's Linux runners, and 0.16 for ISBN-10's.</p></div>
+      <div class="limit"><b>The largest pure regexes</b><p>Neither the Spanish DNI's modulus, 23, nor Verhoeff's group splits, so each pattern is one piece: 134,792 characters for the DNI and 134,489 for 12-digit Aadhaar numbers. The first keystroke compiles each in about 0.1 seconds in Chromium on GitHub's Linux runners, and ISBN-10's in 0.19.</p></div>
     </div>
   </section>
 

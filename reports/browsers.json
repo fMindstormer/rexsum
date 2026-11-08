@@ -1,5 +1,5 @@
 {
- "date": "2026-11-02",
+ "date": "2026-11-08",
  "machine": "Linux x86_64",
  "playwright": true,
  "source": "GitHub Actions, workflow Checks",
@@ -10,167 +10,191 @@
     "luhn": {
      "strings": 789,
      "mismatches": [],
-     "first_check_ms": 10,
-     "each_check_us": 10.3
+     "first_check_ms": 11.9,
+     "each_check_us": 14.4
     },
     "card": {
      "strings": 793,
      "mismatches": [],
-     "first_check_ms": 5.3,
-     "each_check_us": 9.7
+     "first_check_ms": 7,
+     "each_check_us": 13.1
     },
     "card16": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 2.6,
-     "each_check_us": 6.2
+     "first_check_ms": 3.4,
+     "each_check_us": 7.5
     },
     "imei": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 5.8,
-     "each_check_us": 9.9
+     "first_check_ms": 7.2,
+     "each_check_us": 11.8
     },
     "sin": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 9.8,
-     "each_check_us": 10.3
+     "first_check_ms": 13.1,
+     "each_check_us": 12.9
     },
     "gtin": {
      "strings": 787,
      "mismatches": [],
-     "first_check_ms": 6.2,
-     "each_check_us": 21.0
+     "first_check_ms": 8.7,
+     "each_check_us": 34.4
     },
     "ean8": {
      "strings": 791,
      "mismatches": [],
-     "first_check_ms": 1.4,
-     "each_check_us": 3.4
+     "first_check_ms": 2,
+     "each_check_us": 4.4
     },
     "upca": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 3.5,
-     "each_check_us": 7.7
+     "first_check_ms": 3.4,
+     "each_check_us": 8.2
     },
     "ean13": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 5.9,
-     "each_check_us": 15.3
+     "first_check_ms": 7.9,
+     "each_check_us": 22.3
     },
     "isbn13": {
      "strings": 791,
      "mismatches": [],
-     "first_check_ms": 6.1,
-     "each_check_us": 13.0
+     "first_check_ms": 8,
+     "each_check_us": 20.6
     },
     "gtin14": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 2.4,
-     "each_check_us": 7.0
+     "first_check_ms": 3.3,
+     "each_check_us": 9.4
     },
     "aba": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 4.6,
-     "each_check_us": 7.6
+     "first_check_ms": 6.2,
+     "each_check_us": 9.6
     },
     "isbn10": {
      "strings": 791,
      "mismatches": [],
-     "first_check_ms": 156.1,
-     "each_check_us": 79.0
+     "first_check_ms": 190.6,
+     "each_check_us": 25.3
     },
     "issn": {
      "strings": 792,
      "mismatches": [],
-     "first_check_ms": 25.3,
-     "each_check_us": 16.3
+     "first_check_ms": 34.4,
+     "each_check_us": 22.3
     },
     "bsn": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 17.4,
-     "each_check_us": 20.6
+     "first_check_ms": 19,
+     "each_check_us": 15.7
     },
     "iban_de": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 24.8,
-     "each_check_us": 363.3
+     "first_check_ms": 33,
+     "each_check_us": 457.5
     },
     "iban_nl": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 21.3,
-     "each_check_us": 278.0
+     "first_check_ms": 26.6,
+     "each_check_us": 339.0
     },
     "iban_gb": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 27.9,
-     "each_check_us": 383.2
+     "first_check_ms": 35.1,
+     "each_check_us": 490.3
     },
     "iban_fr": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 46.4,
-     "each_check_us": 660.6
+     "first_check_ms": 59.9,
+     "each_check_us": 826.8
     },
     "iban": {
      "strings": 795,
      "mismatches": [],
-     "first_check_ms": 81.9,
-     "each_check_us": 1005.3
+     "first_check_ms": 105.1,
+     "each_check_us": 1232.8
     },
     "lei": {
      "strings": 794,
      "mismatches": [],
-     "first_check_ms": 33.8,
-     "each_check_us": 464.0
+     "first_check_ms": 43,
+     "each_check_us": 575.7
     },
     "rf": {
      "strings": 795,
      "mismatches": [],
-     "first_check_ms": 18.6,
-     "each_check_us": 187.7
+     "first_check_ms": 22,
+     "each_check_us": 239.0
     },
     "vin": {
      "strings": 797,
      "mismatches": [],
-     "first_check_ms": 3,
-     "each_check_us": 60.1
+     "first_check_ms": 2.3,
+     "each_check_us": 67.3
     },
     "dni": {
      "strings": 767,
      "mismatches": [],
-     "first_check_ms": 106.3,
-     "each_check_us": 80.3
+     "first_check_ms": 86.7,
+     "each_check_us": 47.2
     },
     "hetu": {
      "strings": 769,
      "mismatches": [],
-     "first_check_ms": 3.2,
-     "each_check_us": 52.7
+     "first_check_ms": 4.2,
+     "each_check_us": 63.1
     },
     "ogm": {
      "strings": 763,
      "mismatches": [],
-     "first_check_ms": 5.5,
-     "each_check_us": 103.5
+     "first_check_ms": 7.4,
+     "each_check_us": 136.7
     },
     "nir": {
      "strings": 764,
      "mismatches": [],
-     "first_check_ms": 13.1,
-     "each_check_us": 76.7
+     "first_check_ms": 10.2,
+     "each_check_us": 90.4
+    },
+    "damm": {
+     "strings": 795,
+     "mismatches": [],
+     "first_check_ms": 26.5,
+     "each_check_us": 223.8
+    },
+    "verhoeff": {
+     "strings": 794,
+     "mismatches": [],
+     "first_check_ms": 32.1,
+     "each_check_us": 214.1
+    },
+    "aadhaar": {
+     "strings": 794,
+     "mismatches": [],
+     "first_check_ms": 104.3,
+     "each_check_us": 39.7
     }
    },
    "examples": {
+    "aadhaar": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
     "aba": {
      "valid_sample": true,
      "invalid_sample_rejected": true,
@@ -190,6 +214,12 @@
      "valid_again": true
     },
     "card16": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "damm": {
      "valid_sample": true,
      "invalid_sample_rejected": true,
      "empty_rejected": true,
@@ -322,6 +352,12 @@
      "valid_again": true
     },
     "upca": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "verhoeff": {
      "valid_sample": true,
      "invalid_sample_rejected": true,
      "empty_rejected": true,
@@ -342,167 +378,191 @@
     "luhn": {
      "strings": 789,
      "mismatches": [],
-     "first_check_ms": 18,
-     "each_check_us": 320.7
+     "first_check_ms": 20,
+     "each_check_us": 349.8
     },
     "card": {
      "strings": 793,
      "mismatches": [],
-     "first_check_ms": 19,
-     "each_check_us": 322.8
+     "first_check_ms": 12,
+     "each_check_us": 315.3
     },
     "card16": {
      "strings": 790,
      "mismatches": [],
      "first_check_ms": 6,
-     "each_check_us": 158.2
+     "each_check_us": 163.3
     },
     "imei": {
      "strings": 790,
      "mismatches": [],
      "first_check_ms": 13,
-     "each_check_us": 302.5
+     "each_check_us": 312.7
     },
     "sin": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 39,
-     "each_check_us": 155.7
+     "first_check_ms": 34,
+     "each_check_us": 153.2
     },
     "gtin": {
      "strings": 787,
      "mismatches": [],
-     "first_check_ms": 14,
-     "each_check_us": 321.5
+     "first_check_ms": 16,
+     "each_check_us": 334.2
     },
     "ean8": {
      "strings": 791,
      "mismatches": [],
-     "first_check_ms": 6,
-     "each_check_us": 53.1
+     "first_check_ms": 5,
+     "each_check_us": 55.6
     },
     "upca": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 5,
-     "each_check_us": 153.2
+     "first_check_ms": 6,
+     "each_check_us": 155.7
     },
     "ean13": {
      "strings": 790,
      "mismatches": [],
      "first_check_ms": 14,
-     "each_check_us": 305.1
+     "each_check_us": 313.9
     },
     "isbn13": {
      "strings": 791,
      "mismatches": [],
      "first_check_ms": 13,
-     "each_check_us": 305.9
+     "each_check_us": 314.8
     },
     "gtin14": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 6,
-     "each_check_us": 153.2
+     "first_check_ms": 5,
+     "each_check_us": 155.7
     },
     "aba": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 19,
-     "each_check_us": 132.9
+     "first_check_ms": 17,
+     "each_check_us": 135.4
     },
     "isbn10": {
      "strings": 791,
      "mismatches": [],
-     "first_check_ms": 277,
-     "each_check_us": 1034.1
+     "first_check_ms": 209,
+     "each_check_us": 878.6
     },
     "issn": {
      "strings": 792,
      "mismatches": [],
-     "first_check_ms": 77,
-     "each_check_us": 202.0
+     "first_check_ms": 66,
+     "each_check_us": 189.4
     },
     "bsn": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 46,
-     "each_check_us": 459.5
+     "first_check_ms": 44,
+     "each_check_us": 406.3
     },
     "iban_de": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 51,
-     "each_check_us": 1200.0
+     "first_check_ms": 49,
+     "each_check_us": 1144.3
     },
     "iban_nl": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 49,
-     "each_check_us": 950.6
+     "first_check_ms": 44,
+     "each_check_us": 898.7
     },
     "iban_gb": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 68,
-     "each_check_us": 1305.1
+     "first_check_ms": 61,
+     "each_check_us": 1255.7
     },
     "iban_fr": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 110,
-     "each_check_us": 2097.5
+     "first_check_ms": 102,
+     "each_check_us": 2078.5
     },
     "iban": {
      "strings": 795,
      "mismatches": [],
-     "first_check_ms": 192,
-     "each_check_us": 3533.3
+     "first_check_ms": 171,
+     "each_check_us": 3371.1
     },
     "lei": {
      "strings": 794,
      "mismatches": [],
-     "first_check_ms": 81,
-     "each_check_us": 1673.8
+     "first_check_ms": 73,
+     "each_check_us": 1638.5
     },
     "rf": {
      "strings": 795,
      "mismatches": [],
-     "first_check_ms": 34,
-     "each_check_us": 883.0
+     "first_check_ms": 32,
+     "each_check_us": 875.5
     },
     "vin": {
      "strings": 797,
      "mismatches": [],
-     "first_check_ms": 3,
+     "first_check_ms": 4,
      "each_check_us": 155.6
     },
     "dni": {
      "strings": 767,
      "mismatches": [],
-     "first_check_ms": 154,
-     "each_check_us": 1266.0
+     "first_check_ms": 136,
+     "each_check_us": 1271.2
     },
     "hetu": {
      "strings": 769,
      "mismatches": [],
      "first_check_ms": 5,
-     "each_check_us": 195.1
+     "each_check_us": 208.1
     },
     "ogm": {
      "strings": 763,
      "mismatches": [],
      "first_check_ms": 7,
-     "each_check_us": 361.7
+     "each_check_us": 365.7
     },
     "nir": {
      "strings": 764,
      "mismatches": [],
-     "first_check_ms": 11,
-     "each_check_us": 374.3
+     "first_check_ms": 12,
+     "each_check_us": 384.8
+    },
+    "damm": {
+     "strings": 795,
+     "mismatches": [],
+     "first_check_ms": 40,
+     "each_check_us": 754.7
+    },
+    "verhoeff": {
+     "strings": 794,
+     "mismatches": [],
+     "first_check_ms": 58,
+     "each_check_us": 789.7
+    },
+    "aadhaar": {
+     "strings": 794,
+     "mismatches": [],
+     "first_check_ms": 156,
+     "each_check_us": 1159.9
     }
    },
    "examples": {
+    "aadhaar": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
     "aba": {
      "valid_sample": true,
      "invalid_sample_rejected": true,
@@ -522,6 +582,12 @@
      "valid_again": true
     },
     "card16": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "damm": {
      "valid_sample": true,
      "invalid_sample_rejected": true,
      "empty_rejected": true,
@@ -654,6 +720,12 @@
      "valid_again": true
     },
     "upca": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "verhoeff": {
      "valid_sample": true,
      "invalid_sample_rejected": true,
      "empty_rejected": true,
@@ -674,167 +746,191 @@
     "luhn": {
      "strings": 789,
      "mismatches": [],
-     "first_check_ms": 10,
-     "each_check_us": 1401.8
+     "first_check_ms": 6,
+     "each_check_us": 1342.2
     },
     "card": {
      "strings": 793,
      "mismatches": [],
-     "first_check_ms": 5,
-     "each_check_us": 1382.1
+     "first_check_ms": 4,
+     "each_check_us": 1296.3
     },
     "card16": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 2,
-     "each_check_us": 777.2
+     "first_check_ms": 1,
+     "each_check_us": 711.4
     },
     "imei": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 4,
-     "each_check_us": 1400.0
+     "first_check_ms": 3,
+     "each_check_us": 1289.9
     },
     "sin": {
      "strings": 790,
      "mismatches": [],
      "first_check_ms": 2,
-     "each_check_us": 594.9
+     "each_check_us": 559.5
     },
     "gtin": {
      "strings": 787,
      "mismatches": [],
-     "first_check_ms": 4,
-     "each_check_us": 1368.5
+     "first_check_ms": 3,
+     "each_check_us": 1244.0
     },
     "ean8": {
      "strings": 791,
      "mismatches": [],
      "first_check_ms": 0,
-     "each_check_us": 276.9
+     "each_check_us": 240.2
     },
     "upca": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 2,
-     "each_check_us": 726.6
+     "first_check_ms": 1,
+     "each_check_us": 672.2
     },
     "ean13": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 2,
-     "each_check_us": 1340.5
+     "first_check_ms": 3,
+     "each_check_us": 1216.5
     },
     "isbn13": {
      "strings": 791,
      "mismatches": [],
      "first_check_ms": 2,
-     "each_check_us": 1307.2
+     "each_check_us": 1202.3
     },
     "gtin14": {
      "strings": 790,
      "mismatches": [],
      "first_check_ms": 1,
-     "each_check_us": 735.4
+     "each_check_us": 677.2
     },
     "aba": {
      "strings": 790,
      "mismatches": [],
      "first_check_ms": 1,
-     "each_check_us": 559.5
+     "each_check_us": 521.5
     },
     "isbn10": {
      "strings": 791,
      "mismatches": [],
-     "first_check_ms": 29,
-     "each_check_us": 6639.7
+     "first_check_ms": 21,
+     "each_check_us": 9117.6
     },
     "issn": {
      "strings": 792,
      "mismatches": [],
-     "first_check_ms": 4,
-     "each_check_us": 1050.5
+     "first_check_ms": 6,
+     "each_check_us": 1097.2
     },
     "bsn": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 14,
-     "each_check_us": 3421.5
+     "first_check_ms": 12,
+     "each_check_us": 4035.4
     },
     "iban_de": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 12,
-     "each_check_us": 4392.4
+     "first_check_ms": 10,
+     "each_check_us": 4391.1
     },
     "iban_nl": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 8,
-     "each_check_us": 3405.1
+     "first_check_ms": 7,
+     "each_check_us": 3429.1
     },
     "iban_gb": {
      "strings": 790,
      "mismatches": [],
-     "first_check_ms": 13,
-     "each_check_us": 4830.4
+     "first_check_ms": 10,
+     "each_check_us": 4859.5
     },
     "iban_fr": {
      "strings": 790,
      "mismatches": [],
      "first_check_ms": 17,
-     "each_check_us": 7916.5
+     "each_check_us": 8279.7
     },
     "iban": {
      "strings": 795,
      "mismatches": [],
-     "first_check_ms": 28,
-     "each_check_us": 13470.4
+     "first_check_ms": 24,
+     "each_check_us": 14206.3
     },
     "lei": {
      "strings": 794,
      "mismatches": [],
      "first_check_ms": 13,
-     "each_check_us": 5789.7
+     "each_check_us": 5824.9
     },
     "rf": {
      "strings": 795,
      "mismatches": [],
-     "first_check_ms": 11,
-     "each_check_us": 3796.2
+     "first_check_ms": 9,
+     "each_check_us": 3962.3
     },
     "vin": {
      "strings": 797,
      "mismatches": [],
      "first_check_ms": 1,
-     "each_check_us": 503.1
+     "each_check_us": 456.7
     },
     "dni": {
      "strings": 767,
      "mismatches": [],
-     "first_check_ms": 39,
-     "each_check_us": 13117.3
+     "first_check_ms": 33,
+     "each_check_us": 17421.1
     },
     "hetu": {
      "strings": 769,
      "mismatches": [],
-     "first_check_ms": 3,
-     "each_check_us": 832.2
+     "first_check_ms": 2,
+     "each_check_us": 836.2
     },
     "ogm": {
      "strings": 763,
      "mismatches": [],
      "first_check_ms": 3,
-     "each_check_us": 1297.5
+     "each_check_us": 1296.2
     },
     "nir": {
      "strings": 764,
      "mismatches": [],
      "first_check_ms": 4,
-     "each_check_us": 1674.1
+     "each_check_us": 1687.2
+    },
+    "damm": {
+     "strings": 795,
+     "mismatches": [],
+     "first_check_ms": 10,
+     "each_check_us": 3654.1
+    },
+    "verhoeff": {
+     "strings": 794,
+     "mismatches": [],
+     "first_check_ms": 10,
+     "each_check_us": 3808.6
+    },
+    "aadhaar": {
+     "strings": 794,
+     "mismatches": [],
+     "first_check_ms": 34,
+     "each_check_us": 17284.6
     }
    },
    "examples": {
+    "aadhaar": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
     "aba": {
      "valid_sample": true,
      "invalid_sample_rejected": true,
@@ -854,6 +950,12 @@
      "valid_again": true
     },
     "card16": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "damm": {
      "valid_sample": true,
      "invalid_sample_rejected": true,
      "empty_rejected": true,
@@ -986,6 +1088,12 @@
      "valid_again": true
     },
     "upca": {
+     "valid_sample": true,
+     "invalid_sample_rejected": true,
+     "empty_rejected": true,
+     "valid_again": true
+    },
+    "verhoeff": {
      "valid_sample": true,
      "invalid_sample_rejected": true,
      "empty_rejected": true,
